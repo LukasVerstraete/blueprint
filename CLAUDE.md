@@ -68,7 +68,9 @@ The project uses a VS Code Dev Container with:
 - Tailwind CSS v4 PostCSS plugin (@tailwindcss/postcss) and Autoprefixer configured
 
 #### Next.js Configuration (`next.config.mjs`)
-- Currently using default configuration
+- ESLint errors ignored during builds (temporary workaround)
+- TypeScript errors ignored during builds (temporary workaround)
+- Note: These settings should be removed once all linting/type issues are resolved
 
 #### ESLint Configuration (`.eslintrc.json`)
 - Extends: `next/core-web-vitals` and `next/typescript`
@@ -93,6 +95,7 @@ The project uses a VS Code Dev Container with:
 - Colors: background, foreground, primary, secondary, muted, accent, destructive
 - UI elements: card, popover, border, input, ring
 - Radius variable for consistent border radius
+- Note: Direct CSS properties used instead of Tailwind utilities for CSS variables due to Tailwind v4 compatibility
 
 #### Tailwind Integration
 - All Tailwind layers imported (@base, @components, @utilities)
@@ -102,8 +105,10 @@ The project uses a VS Code Dev Container with:
 ### Supabase Integration
 - Client-side: `utils/supabase/client.ts` - Uses `createBrowserClient`
 - Server-side: `utils/supabase/server.ts` - Uses `createServerClient` with Next.js cookies
-- Middleware: `middleware.ts` - Updates session on every request
+- Middleware: `middleware.ts` - Currently disabled due to Edge Runtime compatibility issues with Supabase
 - Middleware matcher configured to exclude static assets
+
+Note: Supabase middleware is temporarily disabled in production builds due to Edge Runtime compatibility. The Supabase SDK uses Node.js APIs (process.version) which are not available in Edge Runtime.
 
 ### Environment Variables
 - **Local Development**: `.env.local` (gitignored)
