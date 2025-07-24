@@ -154,3 +154,121 @@ The `.gitignore` includes:
 ## Helper Scripts
 
 - `cc.sh`: Wrapper for Claude CLI that runs with `--dangerously-skip-permissions` flag
+
+## Documentation
+
+For detailed information about Blueprint, refer to these documentation files:
+
+- **`/docs/features.md`** - Comprehensive feature documentation covering all aspects of Blueprint including entity management, page builder, query builder, user roles, and more
+- **`/docs/database-schema.md`** - Complete database schema with all tables, relationships, indexes, and examples
+
+## Blueprint Application Requirements
+
+### Overview
+Blueprint is a multi-tenant application where administrators can manage projects. Within each project, administrators can:
+1. Define data types/entities with properties
+2. Build pages using predefined components
+3. Create queries to fetch and display data
+4. Manage user access with role-based permissions
+
+### Core Concepts
+
+#### Entities
+Entities are data type definitions (schemas, not instances) with:
+- `id` - Unique identifier
+- `name` - Display name
+- `displayString` - Template string for displaying instances (e.g., `"{firstname} {lastname}"`)
+
+#### Properties
+Properties define the fields of an entity:
+- `id` - Unique identifier
+- `name` - Display name
+- `propertyName` - camelCase version for JavaScript objects
+- `propertyType` - One of: string, number, date, datetime, time, boolean, entity
+- `isList` - Boolean indicating if property holds multiple values
+- `value` (optional) - Default value, always stored as string and cast to propertyType
+- `entityInstanceId` (optional) - Used when propertyType is "entity"
+- `required` (future) - Boolean indicating if field is required in create forms
+
+Note: Entity-type properties should implement cycle detection to prevent circular references.
+
+### Page Builder Components
+
+#### Label Component
+Displays text from:
+- Static predefined text
+- Linked entity (shows displayString)
+- Property value
+- Query result (single output only)
+
+#### Property Component
+- Shows property name
+- Shows property value below
+
+#### Form Component
+Configuration options:
+- Entity type (for create forms) OR query for specific instance (update forms)
+- Select which properties to show/hide
+- Set as "create" or "update" mode
+- Number of columns for layout
+- Property order (drag to reorder)
+- Required properties always show in create forms
+
+#### List Component
+- Linked to a query
+- Displays entity instances as a list
+
+#### Table Component
+- Linked to a query
+- Displays entity instances in table format
+
+### Query Builder
+Creates queries specific to one entity type using a tree structure:
+
+#### Query Groups
+- Type: AND or OR
+- Can contain:
+  - Rules (conditions on properties)
+  - Nested groups
+
+Example:
+```
+Root Group (AND)
+├── Rule: firstname starts with "J"
+├── Rule: lastname starts with "S"
+└── Group (OR)
+    ├── Rule: age = 18
+    └── Rule: age = 19
+```
+
+### User Roles
+
+Three hierarchical roles with cumulative permissions:
+
+1. **Default**
+   - Full access to use created pages
+   - Can perform all CRUD operations through forms
+   - Cannot build pages or manage entities
+
+2. **ContentManager** (includes Default permissions)
+   - Can create and edit pages
+   - Can use page builder components
+   - Cannot manage entities or users
+
+3. **Administrator** (includes all permissions)
+   - Can manage entities and properties
+   - Can manage users and assign roles
+   - Full project access
+
+### DisplayString Builder
+- Form-based interface
+- Dropdown to select available properties
+- Mix static text with property placeholders
+- Entity-type properties excluded for now (prevents complexity)
+
+### Future Considerations
+- Breaking changes when entities/properties are modified (currently unresolved)
+- Navigation/menu system between pages
+- Parameterized queries
+- Bulk operations on entity instances
+- Property validation beyond required fields
