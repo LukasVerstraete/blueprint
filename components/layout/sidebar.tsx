@@ -12,12 +12,15 @@ import {
   Users,
   Settings
 } from 'lucide-react'
+import { useProjectContext } from '@/app/providers/project-provider'
+import { UserRole } from '@/types/project'
 
 interface NavItem {
   title: string
   href: string
   icon: React.ComponentType<{ className?: string }>
-  requiredRole?: 'default' | 'content_manager' | 'administrator'
+  requiredRole?: UserRole
+  requiresProject?: boolean
 }
 
 const navItems: NavItem[] = [
@@ -30,30 +33,58 @@ const navItems: NavItem[] = [
     title: 'Entities',
     href: '/entities',
     icon: Database,
-    requiredRole: 'administrator',
+    requiredRole: UserRole.Administrator,
+    requiresProject: true,
   },
   {
     title: 'Pages',
     href: '/pages',
     icon: FileText,
-    requiredRole: 'content_manager',
+    requiredRole: UserRole.ContentManager,
+    requiresProject: true,
   },
   {
     title: 'Queries',
     href: '/queries',
     icon: Search,
-    requiredRole: 'content_manager',
+    requiredRole: UserRole.ContentManager,
+    requiresProject: true,
   },
   {
     title: 'Users',
     href: '/users',
     icon: Users,
-    requiredRole: 'administrator',
+    requiredRole: UserRole.Administrator,
+    requiresProject: true,
   },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { currentProject } = useProjectContext()
+
+  const canAccessNavItem = (item: NavItem): boolean => {
+    if (item.requiresProject && !currentProject) {
+      return false
+    }
+
+    if (!item.requiredRole) {
+      return true
+    }
+
+    if (!currentProject) {
+      return false
+    }
+
+    const userRole = currentProject.user_role
+    const roleHierarchy = {
+      [UserRole.Default]: 0,
+      [UserRole.ContentManager]: 1,
+      [UserRole.Administrator]: 2,
+    }
+
+    return roleHierarchy[userRole] >= roleHierarchy[item.requiredRole]
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -70,6 +101,11 @@ export function Sidebar() {
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname.startsWith(item.href)
+          const canAccess = canAccessNavItem(item)
+          
+          if (!canAccess) {
+            return null
+          }
           
           return (
             <Link

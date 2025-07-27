@@ -45,8 +45,24 @@ CREATE POLICY "Administrators can view all project roles" ON user_project_roles
     FOR SELECT
     USING (auth_has_role_in_project(project_id, ARRAY['administrator']));
 
-CREATE POLICY "Administrators can manage project roles" ON user_project_roles
-    FOR ALL
+CREATE POLICY "Project creators can assign themselves as admin" ON user_project_roles
+    FOR INSERT
+    WITH CHECK (
+        user_id = auth.uid()
+        AND role = 'administrator'
+        AND EXISTS (
+            SELECT 1 FROM projects
+            WHERE projects.id = user_project_roles.project_id
+            AND projects.created_by = auth.uid()
+        )
+    );
+
+CREATE POLICY "Administrators can update project roles" ON user_project_roles
+    FOR UPDATE
+    USING (auth_has_role_in_project(project_id, ARRAY['administrator']));
+
+CREATE POLICY "Administrators can delete project roles" ON user_project_roles
+    FOR DELETE
     USING (auth_has_role_in_project(project_id, ARRAY['administrator']));
 
 -- Entities policies

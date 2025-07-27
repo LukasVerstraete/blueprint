@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
+import { ProjectProvider } from '@/app/providers/project-provider'
 
 export default function DashboardLayout({
   children,
@@ -36,24 +37,26 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Fixed left sidebar - 240px/16rem width */}
-      <aside className="fixed left-0 top-0 z-40 h-screen w-60 border-r bg-background">
-        <Sidebar />
-      </aside>
-      
-      {/* Main content area - takes remaining width */}
-      <div className="flex-1 ml-60">
-        {/* Header with project switcher and user menu */}
-        <Header />
+    <ProjectProvider>
+      <div className="flex h-screen overflow-hidden">
+        {/* Fixed left sidebar - 240px/16rem width */}
+        <aside className="fixed left-0 top-0 z-40 h-screen w-60 border-r bg-background">
+          <Sidebar />
+        </aside>
         
-        {/* Scrollable content area */}
-        <main className="h-[calc(100vh-4rem)] overflow-y-auto bg-muted/10">
-          <div className="px-6 py-6">
-            {children}
-          </div>
-        </main>
+        {/* Main content area - takes remaining width */}
+        <div className="flex-1 ml-60">
+          {/* Header with project switcher and user menu */}
+          <Header />
+          
+          {/* Scrollable content area */}
+          <main className="h-[calc(100vh-4rem)] overflow-y-auto bg-muted/10">
+            <div className="px-6 py-6">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </ProjectProvider>
   )
 }

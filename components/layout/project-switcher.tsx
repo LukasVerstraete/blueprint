@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronsUpDown, Plus } from 'lucide-react'
+import { ChevronsUpDown, Plus, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Command,
@@ -9,16 +9,30 @@ import {
   CommandGroup,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/command'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { useProjectContext } from '@/app/providers/project-provider'
+import { useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 export function ProjectSwitcher() {
   const [open, setOpen] = useState(false)
-  const [selectedProject] = useState<{ id: string; name: string; role: string } | null>(null)
+  const { currentProject, setCurrentProject, projects, isLoading } = useProjectContext()
+  const router = useRouter()
+
+  if (isLoading) {
+    return (
+      <Button variant="outline" className="w-[240px] justify-between" disabled>
+        <span className="truncate">Loading...</span>
+        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+    )
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -29,7 +43,7 @@ export function ProjectSwitcher() {
           aria-expanded={open}
           className="w-[240px] justify-between"
         >
-          <span className="truncate">{selectedProject?.name || 'Select project...'}</span>
+          <span className="truncate">{currentProject?.name || 'Select project...'}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -37,16 +51,38 @@ export function ProjectSwitcher() {
         <Command>
           <CommandList>
             <CommandEmpty>No projects available</CommandEmpty>
+            {projects.length > 0 && (
+              <CommandGroup heading="Projects">
+                {projects.map((project) => (
+                  <CommandItem
+                    key={project.id}
+                    value={project.name}
+                    onSelect={() => {
+                      setCurrentProject(project)
+                      setOpen(false)
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        currentProject?.id === project.id ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <span className="truncate">{project.name}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            <CommandSeparator />
             <CommandGroup>
               <CommandItem
                 onSelect={() => {
                   setOpen(false)
-                  // Navigate to create project page
-                  window.location.href = '/projects/new'
+                  router.push('/projects')
                 }}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Create new project
+                Manage projects
               </CommandItem>
             </CommandGroup>
           </CommandList>

@@ -129,6 +129,14 @@ Note: No `.env` file is used since Vercel manages production environment variabl
 - Unused variables/parameters should be prefixed with underscore
 - Avoid `console.log` in production code
 
+### Database Migrations
+
+**IMPORTANT**: All database migrations must be idempotent (safe to run multiple times). Use dynamic SQL with existence checks:
+- Use `DROP ... IF EXISTS` for dropping objects
+- Check if objects exist before creating them using `DO $$ BEGIN ... EXCEPTION WHEN ... END $$` blocks
+- Use `CREATE OR REPLACE` for functions
+- This ensures migrations can be re-run safely if they fail partway through
+
 ### Component Development
 - Use shadcn/ui components when available
 - Install new components with: `pnpm dlx shadcn@latest add [component-name]`
