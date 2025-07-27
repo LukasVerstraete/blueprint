@@ -22,6 +22,7 @@ CREATE POLICY "Users can view projects they belong to" ON projects
             WHERE user_project_roles.project_id = projects.id
             AND user_project_roles.user_id = auth.uid()
         )
+        OR projects.created_by = auth.uid()
     );
 
 CREATE POLICY "Users can create projects" ON projects
