@@ -18,7 +18,7 @@ import {
 
 export function ProjectSwitcher() {
   const [open, setOpen] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<{ id: string; name: string; role: string } | null>(null)
+  const [selectedProject] = useState<{ id: string; name: string; role: string } | null>(null)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
