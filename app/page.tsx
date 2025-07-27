@@ -4,22 +4,17 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/providers/auth-provider'
 import { Button } from '@/components/ui/button'
-import { signOut } from '@/utils/supabase/auth'
-import { toast } from 'sonner'
+import { useEffect } from 'react'
 
 export default function Home() {
   const { user, loading } = useAuth()
   const router = useRouter()
 
-  const handleSignOut = async () => {
-    const result = await signOut()
-    if (result.error) {
-      toast.error(result.error)
-    } else {
-      toast.success('Logged out successfully')
-      router.push('/login')
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/projects')
     }
-  }
+  }, [user, loading, router])
 
   if (loading) {
     return (
@@ -32,34 +27,25 @@ export default function Home() {
     )
   }
 
+  if (user) {
+    return null
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">Welcome to Blueprint!</h1>
-        {user ? (
-          <div>
-            <p className="mb-6 text-muted-foreground">
-              Logged in as: <span className="font-semibold">{user.email}</span>
-            </p>
-            <Button onClick={handleSignOut}>
-              Sign out
-            </Button>
-          </div>
-        ) : (
-          <div>
-            <p className="mb-6 text-muted-foreground">
-              You are not logged in
-            </p>
-            <div className="space-x-4">
-              <Button asChild>
-                <Link href="/login">Login</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/signup">Sign up</Link>
-              </Button>
-            </div>
-          </div>
-        )}
+        <p className="mb-6 text-muted-foreground">
+          Build custom data management applications without coding
+        </p>
+        <div className="space-x-4">
+          <Button asChild>
+            <Link href="/login">Login</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/signup">Sign up</Link>
+          </Button>
+        </div>
       </div>
     </main>
   )

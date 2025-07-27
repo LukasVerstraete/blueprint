@@ -537,7 +537,6 @@ This means:
 
 - Invitation links expire after 7 days
 - One-time use only
-- Require email verification
 - Audit trail of all invitations
 
 ## Technical Architecture
@@ -760,7 +759,6 @@ This approach handles breaking changes gracefully:
 #### Project Switching
 - Project dropdown selector in application header
 - Recent projects list for quick access
-- Keyboard shortcut (Cmd/Ctrl + K) for project switcher
 - System remembers last active project per user
 
 #### User-Project Relationships
@@ -842,6 +840,46 @@ Page Root
 - Flexible nesting for complex layouts
 - Consistent spacing with defaults
 - Visual hierarchy through containers
+
+### Application Layout
+
+#### Overall Structure
+The Blueprint application uses a fixed layout with two main sections:
+
+1. **Left Sidebar**
+   - Fixed position (non-scrollable)
+   - Contains application navigation
+   - Shows project list and navigation menu
+   - Width: Fixed (e.g., 240px or 16rem)
+
+2. **Content Area**
+   - Takes remaining screen width
+   - Scrollable area for all content
+   - Contains the active page/view
+   - Header stays fixed within content area
+
+#### Navigation Flow
+
+1. **Main Page - Project Overview**
+   - Default landing page shows all projects
+   - Displays project cards or list
+   - Quick access to create new project
+   - Shows user's role per project
+
+2. **Project Management**
+   - Clicking a project enters project context
+   - Sidebar updates to show project-specific navigation:
+     - Entities (Administrator only)
+     - Pages (ContentManager and Administrator)
+     - Queries (ContentManager and Administrator)
+     - Users (Administrator only)
+   - Content area shows selected management interface
+
+#### Layout Implementation Notes
+- Sidebar remains consistent across all views
+- Only content area scrolls to maintain navigation context
+- Responsive considerations for mobile (future enhancement)
+- Breadcrumbs appear in content area header for navigation context
 
 ### Performance & Optimization
 
