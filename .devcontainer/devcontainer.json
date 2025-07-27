@@ -17,6 +17,8 @@
 		},
 		"ghcr.io/devcontainers-community/npm-features/typescript:1": {
 			"version": "latest"
-		}
+		},
+		"ghcr.io/devcontainers-contrib/features/supabase-cli:latest": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:latest": {}
 	}
 }
