@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronRight, Home } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useProjectContext } from '@/app/providers/project-provider'
 
 interface BreadcrumbItem {
   title: string
@@ -12,6 +13,7 @@ interface BreadcrumbItem {
 
 export function Breadcrumb() {
   const pathname = usePathname()
+  const { currentProject } = useProjectContext()
   
   // Generate breadcrumb items from pathname
   const generateBreadcrumbItems = (): BreadcrumbItem[] => {
@@ -27,16 +29,28 @@ export function Breadcrumb() {
       currentPath += `/${path}`
       const isLast = index === paths.length - 1
       
+      // Special handling for project routes
+      if (paths[0] === 'projects' && index === 1 && currentProject) {
+        items.push({
+          title: currentProject.name,
+          href: isLast ? undefined : currentPath,
+        })
+        return
+      }
+      
       // Format the title
       const title = path
         .split('-')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ')
       
-      items.push({
-        title,
-        href: isLast ? undefined : currentPath,
-      })
+      // Skip the word "projects" from breadcrumb if it's the first item
+      if (!(index === 0 && path === 'projects')) {
+        items.push({
+          title,
+          href: isLast ? undefined : currentPath,
+        })
+      }
     })
     
     return items

@@ -111,3 +111,55 @@ export function useDeleteProject(id: string) {
     }
   })
 }
+
+export function useDuplicateProject(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/projects/${id}/duplicate`, {
+        method: 'POST'
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to duplicate project')
+      }
+      
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      toast.success('Project duplicated successfully')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    }
+  })
+}
+
+export function useRestoreProject(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/projects/${id}/restore`, {
+        method: 'POST'
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to restore project')
+      }
+      
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      toast.success('Project restored successfully')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    }
+  })
+}

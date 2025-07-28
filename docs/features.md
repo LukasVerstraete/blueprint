@@ -514,30 +514,30 @@ This means:
 - There are no permission conflicts or overrides
 - Role changes take effect immediately
 
-### User Invitation Process
+### User Invitation Process (Phase 14 - Future)
 
-#### Invitation Flow
+**Note**: User invitations are planned for Phase 14. In the current implementation (Phase 4), only the project creator has access as Administrator.
 
-1. **Administrator initiates invitation**
-   - Enters email address
-   - Selects role
-   - Optionally adds a welcome message
+#### Planned Invitation Flow
 
-2. **System sends invitation email**
-   - Secure invitation link
-   - Project information
-   - Role description
+When implemented, the invitation system will:
 
-3. **User accepts invitation**
-   - Creates account or signs in
-   - Automatically added to project
-   - Receives assigned role
+1. **Allow administrators to invite existing platform users**
+   - Select from existing users only
+   - Assign role (Default, ContentManager, or Administrator)
+   - Send in-app notification
 
-#### Security Considerations
+2. **In-app notification system**
+   - No email integration
+   - Notifications within the application
+   - Accept/decline invitations
 
-- Invitation links expire after 7 days
-- One-time use only
-- Audit trail of all invitations
+3. **User management interface**
+   - View all project users
+   - Change user roles
+   - Remove users from project
+
+For now, projects are single-user with only the creator having access
 
 ## Technical Architecture
 
@@ -776,7 +776,7 @@ This approach handles breaking changes gracefully:
   - All pages and components
   - All queries
   - Does NOT copy entity instances (data)
-- **Transfer Ownership**: Current admin can transfer project to another admin
+- **Transfer Ownership**: (Phase 14 - Future) Will allow admins to transfer project ownership
 
 #### Project Isolation
 - Complete data isolation between projects
@@ -860,20 +860,27 @@ The Blueprint application uses a fixed layout with two main sections:
 
 #### Navigation Flow
 
-1. **Main Page - Project Overview**
+1. **Main Page - Project Overview** (`/projects`)
    - Default landing page shows all projects
-   - Displays project cards or list
+   - Displays project cards with user's role
    - Quick access to create new project
-   - Shows user's role per project
+   - Shows archived projects in separate section (Phase 4)
 
-2. **Project Management**
-   - Clicking a project enters project context
-   - Sidebar updates to show project-specific navigation:
-     - Entities (Administrator only)
-     - Pages (ContentManager and Administrator)
-     - Queries (ContentManager and Administrator)
-     - Users (Administrator only)
-   - Content area shows selected management interface
+2. **Project-Specific Routes** (`/projects/[id]`)
+   - Clicking a project card navigates to `/projects/[id]`
+   - Role-based automatic redirects:
+     - Administrator → `/projects/[id]/entities`
+     - ContentManager → `/projects/[id]/pages`
+     - Default → `/projects/[id]/pages` (read-only view)
+   
+3. **Project Context Navigation**
+   - URL determines active project context
+   - Sidebar shows project-specific sections:
+     - `/projects/[id]/entities` - Entity management (Administrator only)
+     - `/projects/[id]/pages` - Page builder (ContentManager and Administrator)
+     - `/projects/[id]/queries` - Query builder (ContentManager and Administrator)
+     - `/projects/[id]/users` - User management (Phase 14 - Future)
+   - Project switcher navigates to same section in different project
 
 #### Layout Implementation Notes
 - Sidebar remains consistent across all views

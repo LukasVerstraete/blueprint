@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ProjectWithRole, UserRole } from '@/types/project'
-import { MoreHorizontal, Archive, Copy, UserPlus } from 'lucide-react'
+import { MoreHorizontal, Archive, Copy, RotateCcw } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useRouter } from 'next/navigation'
-import { useDeleteProject } from '@/hooks/use-projects'
-import { InviteUserDialog } from '@/components/projects/invite-user-dialog'
-import { useState } from 'react'
+import { useDeleteProject, useDuplicateProject, useRestoreProject } from '@/hooks/use-projects'
 
 interface ProjectCardProps {
   project: ProjectWithRole
@@ -23,13 +21,25 @@ interface ProjectCardProps {
 export function ProjectCard({ project }: ProjectCardProps) {
   const router = useRouter()
   const deleteProject = useDeleteProject(project.id)
+  const duplicateProject = useDuplicateProject(project.id)
+  const restoreProject = useRestoreProject(project.id)
 
   const handleOpen = () => {
-    router.push(`/projects/${project.id}`)
+    if (!project.is_deleted) {
+      router.push(`/projects/${project.id}`)
+    }
   }
 
   const handleArchive = async () => {
     await deleteProject.mutateAsync()
+  }
+
+  const handleDuplicate = async () => {
+    await duplicateProject.mutateAsync()
+  }
+
+  const handleRestore = async () => {
+    await restoreProject.mutateAsync()
   }
 
   const getRoleBadge = (role: UserRole) => {
@@ -53,7 +63,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
   }
 
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleOpen}>
+    <Card 
+      className={`transition-shadow ${project.is_deleted ? 'opacity-60' : 'hover:shadow-lg cursor-pointer'}`} 
+      onClick={handleOpen}
+    >
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div className="flex-1">
           <CardTitle className="text-lg">{project.name}</CardTitle>
@@ -71,25 +84,40 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Invite Users
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Duplicate Project
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleArchive()
-                  }}
-                >
-                  <Archive className="mr-2 h-4 w-4" />
-                  Archive Project
-                </DropdownMenuItem>
+                {project.is_deleted ? (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleRestore()
+                    }}
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Restore Project
+                  </DropdownMenuItem>
+                ) : (
+                  <>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDuplicate()
+                      }}
+                    >
+                      <Copy className="mr-2 h-4 w-4" />
+                      Duplicate Project
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleArchive()
+                      }}
+                    >
+                      <Archive className="mr-2 h-4 w-4" />
+                      Archive Project
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

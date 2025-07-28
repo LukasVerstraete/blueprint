@@ -51,31 +51,33 @@ This document outlines the implementation phases for Blueprint, organized by dep
    - validate_property_instance() trigger
    - Helper functions for common operations
 
-### Phase 4: User & Project Management
+### Phase 4: User & Project Management (Simplified)
 **Dependencies:** Phase 2, 3  
 **Priority:** High - Required for all user interactions  
-**Estimated Time:** 1-2 weeks
+**Estimated Time:** 1 week
 
 1. **Project Management**
-   - Project creation UI
-   - Project listing/cards on main page with user's role displayed
-   - Project switcher component
-   - Recent projects list
-   - Remember last active project per user
-   - Archive/restore functionality (soft delete)
-   - Project duplication feature
-   - Transfer ownership functionality
-   - Project context provider
+   - Project creation UI ✅
+   - Project listing/cards on main page with user's role displayed ✅
+   - Project-specific routes (/projects/[id])
+   - Role-based redirects:
+     - Administrator → /projects/[id]/entities
+     - ContentManager → /projects/[id]/pages  
+     - Default → /projects/[id]/pages
+   - Project switcher component ✅
+   - Recent projects list ✅
+   - Remember last active project per user ✅
+   - Archive/restore functionality (soft delete) ✅
+   - Show archived projects with restore option
+   - Project duplication feature (structure only, no data)
+   - Project context provider ✅
 
-2. **User Role Management**
-   - Role assignment interface (admin only)
-   - User invitation system:
-     - Invitation links expire after 7 days
-     - One-time use only
-     - Audit trail of invitations
-   - Three roles: Default, ContentManager, Administrator
-   - Permission checking hooks/utilities
-   - Role-based component visibility
+2. **User Role Management (Deferred)**
+   - For Phase 4: Only project creator (admin) has access
+   - User invitation system moved to later phase
+   - User management UI moved to later phase
+   - Transfer ownership moved to later phase
+   - Permission system exists but only one user per project
 
 
 ### Phase 5: Entity Management System
@@ -268,4 +270,27 @@ This document outlines the implementation phases for Blueprint, organized by dep
      - One sheet per entity type
      - Not filtered by queries
      - Low priority feature
+
+### Phase 14: User Management & Invitations
+**Dependencies:** Phase 4  
+**Priority:** Medium - Multi-user collaboration  
+**Estimated Time:** 1-2 weeks
+
+1. **User Management Interface**
+   - /projects/[id]/users page
+   - List all project users with roles
+   - Change user roles (admin only)
+   - Remove users from project (admin only)
+
+2. **User Invitation System**
+   - In-app notifications for invitations
+   - Add existing platform users only
+   - Select user and assign role
+   - Notification system for invited users
+   - Accept/decline invitations
+   - No email integration required
+
+3. **Project Ownership**
+   - Transfer ownership to another admin
+   - Ownership history tracking
 

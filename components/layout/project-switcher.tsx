@@ -58,7 +58,15 @@ export function ProjectSwitcher() {
                     key={project.id}
                     value={project.name}
                     onSelect={() => {
-                      setCurrentProject(project)
+                      const currentPath = window.location.pathname
+                      const pathParts = currentPath.split('/')
+                      
+                      if (pathParts[1] === 'projects' && pathParts[2] && pathParts[3]) {
+                        router.push(`/projects/${project.id}/${pathParts[3]}`)
+                      } else {
+                        router.push(`/projects/${project.id}`)
+                      }
+                      
                       setOpen(false)
                     }}
                   >

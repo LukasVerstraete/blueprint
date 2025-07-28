@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { useProjects } from '@/hooks/use-projects'
 import { ProjectWithRole } from '@/types/project'
 
@@ -30,14 +30,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, [projects, currentProject])
 
-  const handleSetCurrentProject = (project: ProjectWithRole | null) => {
+  const handleSetCurrentProject = useCallback((project: ProjectWithRole | null) => {
     setCurrentProject(project)
     if (project) {
       localStorage.setItem('lastActiveProjectId', project.id)
     } else {
       localStorage.removeItem('lastActiveProjectId')
     }
-  }
+  }, [])
 
   return (
     <ProjectContext.Provider 

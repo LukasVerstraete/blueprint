@@ -9,7 +9,6 @@ import {
   FileText,
   Database,
   Search,
-  Users,
   Settings
 } from 'lucide-react'
 import { useProjectContext } from '@/app/providers/project-provider'
@@ -23,7 +22,7 @@ interface NavItem {
   requiresProject?: boolean
 }
 
-const navItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   {
     title: 'Projects',
     href: '/projects',
@@ -50,18 +49,21 @@ const navItems: NavItem[] = [
     requiredRole: UserRole.ContentManager,
     requiresProject: true,
   },
-  {
-    title: 'Users',
-    href: '/users',
-    icon: Users,
-    requiredRole: UserRole.Administrator,
-    requiresProject: true,
-  },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
   const { currentProject } = useProjectContext()
+
+  const navItems = baseNavItems.map(item => {
+    if (item.requiresProject && currentProject) {
+      return {
+        ...item,
+        href: `/projects/${currentProject.id}${item.href}`
+      }
+    }
+    return item
+  })
 
   const canAccessNavItem = (item: NavItem): boolean => {
     if (item.requiresProject && !currentProject) {

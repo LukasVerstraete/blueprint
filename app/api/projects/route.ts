@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
       user_project_roles!inner(role)
     `)
     .eq('user_project_roles.user_id', user.id)
-    .eq('is_deleted', false)
     .order('created_at', { ascending: false })
 
   if (error) {
