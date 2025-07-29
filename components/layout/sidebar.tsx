@@ -55,6 +55,9 @@ export function Sidebar() {
   const pathname = usePathname()
   const { currentProject } = useProjectContext()
 
+  // Check if we're on the projects overview page
+  const isProjectsOverview = pathname === '/projects'
+
   const navItems = baseNavItems.map(item => {
     if (item.requiresProject && currentProject) {
       return {
@@ -66,6 +69,16 @@ export function Sidebar() {
   })
 
   const canAccessNavItem = (item: NavItem): boolean => {
+    // Hide project-specific items on the projects overview page
+    if (isProjectsOverview && item.requiresProject) {
+      return false
+    }
+
+    // Hide the Projects item when inside a specific project
+    if (!isProjectsOverview && item.title === 'Projects') {
+      return false
+    }
+
     if (item.requiresProject && !currentProject) {
       return false
     }
