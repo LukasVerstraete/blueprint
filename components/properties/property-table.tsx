@@ -13,19 +13,20 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Trash2, Edit } from 'lucide-react'
 import { Property, PropertyType, UpdatePropertyInput } from '@/types/entity'
 import { PropertyDefaultInput } from './property-default-input'
 
 interface PropertyTableProps {
   properties: Property[]
-  onUpdate: (propertyId: string, data: UpdatePropertyInput) => void
+  onUpdate: (propertyId: string, data: UpdatePropertyInput) => Promise<void>
   onDelete: (property: Property) => void
 }
 
 export function PropertyTable({ properties, onUpdate, onDelete }: PropertyTableProps) {
-  const [editingCell, setEditingCell] = useState<string | null>(null)
+  const [editingRow, setEditingRow] = useState<string | null>(null)
   const [editValues, setEditValues] = useState<Record<string, any>>({})
+  const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, Partial<Property>>>({})
 
   if (properties.length === 0) {
     return (
@@ -39,27 +40,62 @@ export function PropertyTable({ properties, onUpdate, onDelete }: PropertyTableP
     return type.charAt(0).toUpperCase() + type.slice(1)
   }
 
-  const startEditing = (cellId: string, currentValue: any) => {
-    setEditingCell(cellId)
-    setEditValues({ [cellId]: currentValue })
+  const startEditingRow = (property: Property) => {
+    setEditingRow(property.id)
+    setEditValues({
+      [`${property.id}-name`]: property.name,
+      [`${property.id}-is_required`]: property.is_required,
+      [`${property.id}-default_value`]: property.default_value
+    })
   }
 
   const cancelEditing = () => {
-    setEditingCell(null)
+    setEditingRow(null)
     setEditValues({})
   }
 
-  const saveEdit = (propertyId: string, field: keyof UpdatePropertyInput) => {
-    const value = editValues[`${propertyId}-${field}`]
-    if (value !== undefined) {
-      onUpdate(propertyId, { [field]: value })
+  const saveEdit = async (propertyId: string) => {
+    const updates: UpdatePropertyInput = {}
+    const optimistic: Partial<Property> = {}
+    
+    const name = editValues[`${propertyId}-name`]
+    if (name !== undefined) {
+      updates.name = name
+      optimistic.name = name
     }
+    
+    const isRequired = editValues[`${propertyId}-is_required`]
+    if (isRequired !== undefined) {
+      updates.is_required = isRequired
+      optimistic.is_required = isRequired
+    }
+    
+    const defaultValue = editValues[`${propertyId}-default_value`]
+    if (defaultValue !== undefined) {
+      updates.default_value = defaultValue
+      optimistic.default_value = defaultValue
+    }
+    
+    // Apply optimistic update
+    setOptimisticUpdates(prev => ({ ...prev, [propertyId]: optimistic }))
     cancelEditing()
+    
+    // Call the update function
+    try {
+      await onUpdate(propertyId, updates)
+    } finally {
+      // Clear optimistic update after request completes
+      setOptimisticUpdates(prev => {
+        const newUpdates = { ...prev }
+        delete newUpdates[propertyId]
+        return newUpdates
+      })
+    }
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent, propertyId: string, field: keyof UpdatePropertyInput) => {
+  const handleKeyDown = (e: React.KeyboardEvent, propertyId: string) => {
     if (e.key === 'Enter') {
-      saveEdit(propertyId, field)
+      saveEdit(propertyId)
     } else if (e.key === 'Escape') {
       cancelEditing()
     }
@@ -80,105 +116,105 @@ export function PropertyTable({ properties, onUpdate, onDelete }: PropertyTableP
         </TableHeader>
         <TableBody>
           {properties.map((property) => {
-            const nameCell = `${property.id}-name`
-            const requiredCell = `${property.id}-is_required`
-            const defaultCell = `${property.id}-default_value`
+            const isEditing = editingRow === property.id
+            const nameKey = `${property.id}-name`
+            const requiredKey = `${property.id}-is_required`
+            const defaultKey = `${property.id}-default_value`
+            
+            // Apply optimistic updates if any
+            const displayProperty = optimisticUpdates[property.id] 
+              ? { ...property, ...optimisticUpdates[property.id] }
+              : property
 
             return (
               <TableRow key={property.id}>
-                <TableCell 
-                  className="font-medium cursor-pointer hover:bg-muted/50"
-                  onClick={() => startEditing(nameCell, property.name)}
-                >
-                  {editingCell === nameCell ? (
+                <TableCell className="font-medium">
+                  {isEditing ? (
                     <Input
-                      value={editValues[nameCell] || ''}
-                      onChange={(e) => setEditValues({ ...editValues, [nameCell]: e.target.value })}
-                      onBlur={() => saveEdit(property.id, 'name')}
-                      onKeyDown={(e) => handleKeyDown(e, property.id, 'name')}
-                      autoFocus
+                      value={editValues[nameKey] || ''}
+                      onChange={(e) => setEditValues({ ...editValues, [nameKey]: e.target.value })}
+                      onKeyDown={(e) => handleKeyDown(e, property.id)}
                       className="h-8"
+                      autoFocus
                     />
                   ) : (
-                    property.name
+                    displayProperty.name
                   )}
                 </TableCell>
                 <TableCell className="text-muted-foreground font-mono text-sm">
-                  {property.property_name}
+                  {displayProperty.property_name}
                 </TableCell>
                 <TableCell>
                   <span className="inline-flex items-center gap-1">
-                    {getPropertyTypeLabel(property.property_type)}
-                    {property.is_list && (
+                    {getPropertyTypeLabel(displayProperty.property_type)}
+                    {displayProperty.is_list && (
                       <span className="text-xs text-muted-foreground">(List)</span>
                     )}
                   </span>
                 </TableCell>
-                <TableCell 
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => {
-                    onUpdate(property.id, { is_required: !property.is_required })
-                  }}
-                >
+                <TableCell>
                   <Checkbox 
-                    checked={property.is_required}
+                    checked={isEditing ? editValues[requiredKey] : displayProperty.is_required}
                     onCheckedChange={(checked) => {
-                      onUpdate(property.id, { is_required: checked as boolean })
+                      if (isEditing) {
+                        setEditValues({ ...editValues, [requiredKey]: checked })
+                      }
                     }}
-                    onClick={(e) => e.stopPropagation()}
+                    disabled={!isEditing}
                   />
                 </TableCell>
-                <TableCell 
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => startEditing(defaultCell, property.default_value)}
-                >
-                  {editingCell === defaultCell ? (
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <PropertyDefaultInput
-                        type={property.property_type}
-                        value={editValues[defaultCell]}
-                        onChange={(value) => setEditValues({ ...editValues, [defaultCell]: value })}
-                      />
-                      <div className="flex gap-1 mt-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => saveEdit(property.id, 'default_value')}
-                        >
-                          Save
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={cancelEditing}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
+                <TableCell>
+                  {isEditing ? (
+                    <PropertyDefaultInput
+                      type={displayProperty.property_type}
+                      value={editValues[defaultKey]}
+                      onChange={(value) => setEditValues({ ...editValues, [defaultKey]: value })}
+                    />
                   ) : (
-                    property.default_value || (
+                    displayProperty.default_value || (
                       <span className="text-muted-foreground">-</span>
                     )
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
-                        onClick={() => onDelete(property)}
-                        className="text-destructive"
+                  {isEditing ? (
+                    <div className="flex gap-1 justify-end">
+                      <Button
+                        size="sm"
+                        onClick={() => saveEdit(property.id)}
                       >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={cancelEditing}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => startEditingRow(property)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => onDelete(property)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </TableCell>
               </TableRow>
             )

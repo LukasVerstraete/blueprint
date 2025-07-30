@@ -153,10 +153,8 @@ export function DisplayStringParts({ value, onChange, properties, onSave }: Disp
                 className="cursor-pointer hover:underline text-sm"
                 onClick={() => setEditingPart(part.id)}
               >
-                {part.type === 'string' ? (
-                  part.value || '(empty)'
-                ) : (
-                  <span className="font-mono">{{{part.value}}}</span>
+                {part.type === 'string' ? (part.value || '(empty)') : (
+                  <span className="font-mono">{part.value}</span>
                 )}
               </span>
             )}

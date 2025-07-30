@@ -22,6 +22,8 @@ export function PropertyDefaultInput({ type, value, onChange, disabled }: Proper
     }
   }
 
+  const inputClassName = "h-8"
+
   switch (type) {
     case PropertyType.String:
       return (
@@ -29,8 +31,9 @@ export function PropertyDefaultInput({ type, value, onChange, disabled }: Proper
           type="text"
           value={value || ''}
           onChange={(e) => handleChange(e.target.value)}
-          placeholder="Enter default text"
+          placeholder="Default text"
           disabled={disabled}
+          className={inputClassName}
         />
       )
 
@@ -40,14 +43,15 @@ export function PropertyDefaultInput({ type, value, onChange, disabled }: Proper
           type="number"
           value={value || ''}
           onChange={(e) => handleChange(e.target.value)}
-          placeholder="Enter default number"
+          placeholder="Default number"
           disabled={disabled}
+          className={inputClassName}
         />
       )
 
     case PropertyType.Boolean:
       return (
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 h-8">
           <Checkbox
             id="default-boolean"
             checked={value === 'true'}
@@ -70,6 +74,7 @@ export function PropertyDefaultInput({ type, value, onChange, disabled }: Proper
           value={value || ''}
           onChange={(e) => handleChange(e.target.value)}
           disabled={disabled}
+          className={inputClassName}
         />
       )
 
@@ -80,6 +85,7 @@ export function PropertyDefaultInput({ type, value, onChange, disabled }: Proper
           value={value || ''}
           onChange={(e) => handleChange(e.target.value)}
           disabled={disabled}
+          className={inputClassName}
         />
       )
 
@@ -90,14 +96,18 @@ export function PropertyDefaultInput({ type, value, onChange, disabled }: Proper
           value={value || ''}
           onChange={(e) => handleChange(e.target.value)}
           disabled={disabled}
+          className={inputClassName}
         />
       )
 
     case PropertyType.Entity:
       return (
-        <div className="text-sm text-muted-foreground">
-          Entity default values not yet supported
-        </div>
+        <Input
+          type="text"
+          value="Entity defaults not supported"
+          disabled
+          className={`${inputClassName} text-muted-foreground`}
+        />
       )
 
     default:
