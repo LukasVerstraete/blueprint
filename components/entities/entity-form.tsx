@@ -1,24 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Entity, CreateEntityInput } from '@/types/entity'
+import { Entity, CreateEntityInput, Property } from '@/types/entity'
+import { DisplayStringBuilder } from './display-string-builder'
 
 interface EntityFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   entity?: Entity | null
+  properties?: Property[]
   onSubmit: (data: CreateEntityInput) => void
   isLoading?: boolean
 }
 
-export function EntityForm({ open, onOpenChange, entity, onSubmit, isLoading }: EntityFormProps) {
+export function EntityForm({ open, onOpenChange, entity, properties = [], onSubmit, isLoading }: EntityFormProps) {
   const [name, setName] = useState(entity?.name || '')
   const [displayString, setDisplayString] = useState(entity?.display_string || '')
   const [errors, setErrors] = useState<{ name?: string; displayString?: string }>({})
+
+  useEffect(() => {
+    if (entity) {
+      setName(entity.name)
+      setDisplayString(entity.display_string)
+    } else {
+      setName('')
+      setDisplayString('')
+    }
+  }, [entity])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,7 +41,8 @@ export function EntityForm({ open, onOpenChange, entity, onSubmit, isLoading }: 
     if (!name.trim()) {
       newErrors.name = 'Name is required'
     }
-    if (!displayString.trim()) {
+    // Only validate display string for editing existing entities
+    if (entity && !displayString.trim()) {
       newErrors.displayString = 'Display string is required'
     }
 
@@ -40,7 +53,7 @@ export function EntityForm({ open, onOpenChange, entity, onSubmit, isLoading }: 
 
     onSubmit({
       name: name.trim(),
-      display_string: displayString.trim()
+      display_string: entity ? displayString.trim() : '{id}' // Default to {id} for new entities
     })
   }
 
@@ -72,22 +85,18 @@ export function EntityForm({ open, onOpenChange, entity, onSubmit, isLoading }: 
                 <p className="text-sm text-destructive">{errors.name}</p>
               )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="displayString">Display String</Label>
-              <Input
-                id="displayString"
-                value={displayString}
-                onChange={(e) => setDisplayString(e.target.value)}
-                placeholder="{firstName} {lastName}"
-                className={errors.displayString ? 'border-destructive' : ''}
-              />
-              {errors.displayString && (
-                <p className="text-sm text-destructive">{errors.displayString}</p>
-              )}
-              <p className="text-sm text-muted-foreground">
-                Use curly braces for property placeholders
-              </p>
-            </div>
+            {entity && (
+              <div className="grid gap-2">
+                <DisplayStringBuilder
+                  value={displayString}
+                  onChange={setDisplayString}
+                  properties={properties}
+                />
+                {errors.displayString && (
+                  <p className="text-sm text-destructive">{errors.displayString}</p>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose}>

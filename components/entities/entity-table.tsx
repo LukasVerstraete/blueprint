@@ -41,12 +41,16 @@ export function EntityTable({ entities, onEdit, onDelete }: EntityTableProps) {
       </TableHeader>
       <TableBody>
         {entities.map((entity) => (
-          <TableRow key={entity.id}>
+          <TableRow 
+            key={entity.id} 
+            className="cursor-pointer hover:bg-muted/50"
+            onClick={() => onEdit(entity)}
+          >
             <TableCell className="font-medium">{entity.name}</TableCell>
             <TableCell className="text-muted-foreground">{entity.display_string}</TableCell>
             <TableCell>{entity.property_count}</TableCell>
             <TableCell>{new Date(entity.created_at).toLocaleDateString()}</TableCell>
-            <TableCell className="text-right">
+            <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm">

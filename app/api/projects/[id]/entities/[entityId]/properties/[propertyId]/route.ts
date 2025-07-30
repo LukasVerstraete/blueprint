@@ -1,7 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 import { UpdatePropertyInput } from '@/types/entity'
-import { validatePropertyType, detectCycles } from '@/lib/entity-utils'
+import { validatePropertyType, detectCycles, toCamelCase } from '@/lib/entity-utils'
 
 export async function PUT(
   request: Request,
@@ -52,13 +52,20 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid default value for property type' }, { status: 400 })
     }
 
+    // If name is updated, update property_name as well
+    const updateData = { ...body }
+    if (body.name && body.name !== existing.name) {
+      updateData.property_name = toCamelCase(body.name)
+    }
+
     // Check for duplicate property name if updating name
-    if (body.property_name && body.property_name !== existing.property_name) {
+    const propertyNameToCheck = updateData.property_name || body.property_name
+    if (propertyNameToCheck && propertyNameToCheck !== existing.property_name) {
       const { data: duplicate } = await supabase
         .from('properties')
         .select('id')
         .eq('entity_id', entityId)
-        .eq('property_name', body.property_name)
+        .eq('property_name', propertyNameToCheck)
         .eq('is_deleted', false)
         .neq('id', propertyId)
         .single()
@@ -105,7 +112,7 @@ export async function PUT(
     const { data: property, error: updateError } = await supabase
       .from('properties')
       .update({
-        ...body,
+        ...updateData,
         last_modified_by: user.id,
         updated_at: new Date().toISOString()
       })

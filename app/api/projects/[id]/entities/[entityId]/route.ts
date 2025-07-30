@@ -32,13 +32,10 @@ export async function GET(
     return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
   }
 
-  // Get entity with properties
+  // Get entity
   const { data: entity, error: entityError } = await supabase
     .from('entities')
-    .select(`
-      *,
-      properties(*)
-    `)
+    .select('*')
     .eq('id', entityId)
     .eq('project_id', projectId)
     .eq('is_deleted', false)
@@ -48,12 +45,26 @@ export async function GET(
     return NextResponse.json({ error: 'Entity not found' }, { status: 404 })
   }
 
-  // Filter out deleted properties and sort by sort_order
-  entity.properties = entity.properties
-    .filter((p) => !p.is_deleted)
-    .sort((a, b) => a.sort_order - b.sort_order)
+  // Get properties for this entity
+  const { data: properties, error: propertiesError } = await supabase
+    .from('properties')
+    .select('*')
+    .eq('entity_id', entityId)
+    .eq('is_deleted', false)
+    .order('sort_order', { ascending: true })
 
-  return NextResponse.json({ entity })
+  if (propertiesError) {
+    console.error('Error fetching properties:', propertiesError)
+    return NextResponse.json({ error: 'Failed to fetch properties' }, { status: 500 })
+  }
+
+  // Combine entity with properties
+  const entityWithProperties = {
+    ...entity,
+    properties: properties || []
+  }
+
+  return NextResponse.json({ entity: entityWithProperties })
 }
 
 export async function PUT(
