@@ -6,6 +6,7 @@ import { useProjectContext } from '@/app/providers/project-provider'
 import { useProjectUsers, useUpdateUserRole } from '@/hooks/use-project-users'
 import { RoleGuard } from '@/components/auth/role-guard'
 import { UserRole } from '@/types/project'
+import { formatDate } from '@/lib/date-utils'
 import {
   Card,
   CardContent,
@@ -92,7 +93,7 @@ export default function UsersPage() {
                     <div>
                       <CardTitle className="text-lg">{user.email}</CardTitle>
                       <CardDescription>
-                        Joined {new Date(user.created_at).toLocaleDateString()}
+                        Joined {formatDate(user.created_at)}
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">

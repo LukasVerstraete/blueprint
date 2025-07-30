@@ -16,6 +16,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal, Trash2, Edit } from 'lucide-react'
 import { Property, PropertyType, UpdatePropertyInput } from '@/types/entity'
 import { PropertyDefaultInput } from './property-default-input'
+import { PropertyValueDisplay } from './property-value-display'
+import { PropertyInlineInput } from './property-inline-input'
 
 interface PropertyTableProps {
   properties: Property[]
@@ -130,11 +132,11 @@ export function PropertyTable({ properties, onUpdate, onDelete }: PropertyTableP
               <TableRow key={property.id}>
                 <TableCell className="font-medium">
                   {isEditing ? (
-                    <Input
-                      value={editValues[nameKey] || ''}
-                      onChange={(e) => setEditValues({ ...editValues, [nameKey]: e.target.value })}
+                    <PropertyInlineInput
+                      type={PropertyType.String}
+                      value={editValues[nameKey]}
+                      onChange={(value) => setEditValues({ ...editValues, [nameKey]: value })}
                       onKeyDown={(e) => handleKeyDown(e, property.id)}
-                      className="h-8"
                       autoFocus
                     />
                   ) : (
@@ -171,9 +173,10 @@ export function PropertyTable({ properties, onUpdate, onDelete }: PropertyTableP
                       onChange={(value) => setEditValues({ ...editValues, [defaultKey]: value })}
                     />
                   ) : (
-                    displayProperty.default_value || (
-                      <span className="text-muted-foreground">-</span>
-                    )
+                    <PropertyValueDisplay
+                      type={displayProperty.property_type}
+                      value={displayProperty.default_value}
+                    />
                   )}
                 </TableCell>
                 <TableCell className="text-right">

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { ProjectWithRole, UserRole } from '@/types/project'
 import { MoreHorizontal, Archive, Copy, RotateCcw } from 'lucide-react'
+import { formatDate } from '@/lib/date-utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,7 +72,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex-1">
           <CardTitle className="text-lg">{project.name}</CardTitle>
           <CardDescription className="mt-1">
-            Created {new Date(project.created_at).toLocaleDateString()}
+            Created {formatDate(project.created_at)}
           </CardDescription>
         </div>
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>

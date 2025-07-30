@@ -28,6 +28,7 @@ export default function EntityDetailPage() {
   const [editingEntityName, setEditingEntityName] = useState(false)
   const [entityName, setEntityName] = useState('')
   const [displayString, setDisplayString] = useState('')
+  const [optimisticEntityName, setOptimisticEntityName] = useState<string | null>(null)
 
   // Queries and mutations
   const { data: entity, isLoading } = useEntity(projectId, entityId)
@@ -41,6 +42,8 @@ export default function EntityDetailPage() {
     if (entity) {
       setEntityName(entity.name)
       setDisplayString(entity.display_string)
+      // Clear optimistic update when entity data changes
+      setOptimisticEntityName(null)
     }
   }, [entity])
 
@@ -100,14 +103,18 @@ export default function EntityDetailPage() {
       return
     }
 
+    // Set optimistic update
+    setOptimisticEntityName(entityName.trim())
+    setEditingEntityName(false)
+
     try {
       await updateEntityMutation.mutateAsync({ name: entityName.trim() })
       toast.success('Entity name updated successfully')
-      setEditingEntityName(false)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update entity name')
+      // Revert optimistic update on error
+      setOptimisticEntityName(null)
       setEntityName(entity?.name || '')
-      setEditingEntityName(false)
     }
   }
 
@@ -184,7 +191,7 @@ export default function EntityDetailPage() {
               className="text-3xl font-bold mb-2 cursor-pointer hover:bg-muted/50 inline-block px-2 -mx-2 rounded"
               onClick={() => setEditingEntityName(true)}
             >
-              {entity.name}
+              {optimisticEntityName || entity.name}
             </h1>
           )}
           

@@ -3,6 +3,7 @@
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { PropertyType } from '@/types/entity'
+import { FormattedDateInput } from './formatted-date-input'
 
 interface PropertyDefaultInputProps {
   type: PropertyType
@@ -69,10 +70,10 @@ export function PropertyDefaultInput({ type, value, onChange, disabled }: Proper
 
     case PropertyType.Date:
       return (
-        <Input
-          type="date"
-          value={value || ''}
-          onChange={(e) => handleChange(e.target.value)}
+        <FormattedDateInput
+          type={PropertyType.Date}
+          value={value}
+          onChange={handleChange}
           disabled={disabled}
           className={inputClassName}
         />
@@ -80,10 +81,10 @@ export function PropertyDefaultInput({ type, value, onChange, disabled }: Proper
 
     case PropertyType.DateTime:
       return (
-        <Input
-          type="datetime-local"
-          value={value || ''}
-          onChange={(e) => handleChange(e.target.value)}
+        <FormattedDateInput
+          type={PropertyType.DateTime}
+          value={value}
+          onChange={handleChange}
           disabled={disabled}
           className={inputClassName}
         />
@@ -91,10 +92,10 @@ export function PropertyDefaultInput({ type, value, onChange, disabled }: Proper
 
     case PropertyType.Time:
       return (
-        <Input
-          type="time"
-          value={value || ''}
-          onChange={(e) => handleChange(e.target.value)}
+        <FormattedDateInput
+          type={PropertyType.Time}
+          value={value}
+          onChange={handleChange}
           disabled={disabled}
           className={inputClassName}
         />

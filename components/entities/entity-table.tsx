@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MoreHorizontal, Edit, Trash2 } from 'lucide-react'
 import { Entity } from '@/types/entity'
+import { formatDate } from '@/lib/date-utils'
 
 interface EntityTableProps {
   entities: (Entity & { property_count: number })[]
@@ -49,7 +50,7 @@ export function EntityTable({ entities, onEdit, onDelete }: EntityTableProps) {
             <TableCell className="font-medium">{entity.name}</TableCell>
             <TableCell className="text-muted-foreground">{entity.display_string}</TableCell>
             <TableCell>{entity.property_count}</TableCell>
-            <TableCell>{new Date(entity.created_at).toLocaleDateString()}</TableCell>
+            <TableCell>{formatDate(entity.created_at)}</TableCell>
             <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
