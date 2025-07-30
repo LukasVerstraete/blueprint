@@ -85,7 +85,7 @@ export function EntityForm({ open, onOpenChange, entity, properties = [], onSubm
                 <p className="text-sm text-destructive">{errors.name}</p>
               )}
             </div>
-            {entity && (
+            {entity && properties.length > 0 && (
               <div className="grid gap-2">
                 <DisplayStringBuilder
                   value={displayString}

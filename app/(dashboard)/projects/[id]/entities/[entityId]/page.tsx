@@ -1,16 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useProjectContext } from '@/app/providers/project-provider'
 import { UserRole } from '@/types/project'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Plus, Edit } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { ArrowLeft, Plus } from 'lucide-react'
 import { useEntity, useEntities, useCreateProperty, useUpdateEntity, useDeleteProperty } from '@/hooks/use-entities'
+import { useQueryClient } from '@tanstack/react-query'
 import { PropertyTable } from '@/components/properties/property-table'
 import { PropertyForm } from '@/components/properties/property-form'
 import { DeletePropertyDialog } from '@/components/properties/delete-property-dialog'
-import { EntityForm } from '@/components/entities/entity-form'
+import { DisplayStringParts } from '@/components/entities/display-string-parts'
 import { Property, CreatePropertyInput, UpdatePropertyInput } from '@/types/entity'
 import { toast } from 'sonner'
 
@@ -20,9 +22,12 @@ export default function EntityDetailPage() {
   const projectId = params.id as string
   const entityId = params.entityId as string
   const { currentProject } = useProjectContext()
+  const queryClient = useQueryClient()
   const [formOpen, setFormOpen] = useState(false)
-  const [entityFormOpen, setEntityFormOpen] = useState(false)
   const [deleteProperty, setDeleteProperty] = useState<Property | null>(null)
+  const [editingEntityName, setEditingEntityName] = useState(false)
+  const [entityName, setEntityName] = useState('')
+  const [displayString, setDisplayString] = useState('')
 
   // Queries and mutations
   const { data: entity, isLoading } = useEntity(projectId, entityId)
@@ -30,6 +35,14 @@ export default function EntityDetailPage() {
   const createPropertyMutation = useCreateProperty(projectId, entityId)
   const updateEntityMutation = useUpdateEntity(projectId, entityId)
   const deletePropertyMutation = useDeleteProperty(projectId, entityId)
+
+  // Update entity data when entity loads
+  useEffect(() => {
+    if (entity) {
+      setEntityName(entity.name)
+      setDisplayString(entity.display_string)
+    }
+  }, [entity])
 
   // Check permissions
   if (currentProject && currentProject.user_role !== UserRole.Administrator) {
@@ -79,13 +92,37 @@ export default function EntityDetailPage() {
     }
   }
 
-  const handleUpdateEntity = async (data: CreateEntityInput) => {
+  const handleSaveEntityName = async () => {
+    if (!entityName.trim()) {
+      toast.error('Entity name cannot be empty')
+      setEntityName(entity?.name || '')
+      setEditingEntityName(false)
+      return
+    }
+
     try {
-      await updateEntityMutation.mutateAsync(data)
-      toast.success('Entity updated successfully')
-      setEntityFormOpen(false)
+      await updateEntityMutation.mutateAsync({ name: entityName.trim() })
+      toast.success('Entity name updated successfully')
+      setEditingEntityName(false)
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update entity')
+      toast.error(error instanceof Error ? error.message : 'Failed to update entity name')
+      setEntityName(entity?.name || '')
+      setEditingEntityName(false)
+    }
+  }
+
+  const handleCancelEntityNameEdit = () => {
+    setEntityName(entity?.name || '')
+    setEditingEntityName(false)
+  }
+
+  const handleSaveDisplayString = async () => {
+    try {
+      await updateEntityMutation.mutateAsync({ display_string: displayString })
+      toast.success('Display string updated successfully')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to update display string')
+      setDisplayString(entity?.display_string || '')
     }
   }
 
@@ -103,8 +140,10 @@ export default function EntityDetailPage() {
       }
       
       toast.success('Property updated successfully')
-      // Refresh the entity data
-      window.location.reload() // Temporary - should use React Query invalidation
+      
+      // Invalidate queries to refresh the data
+      await queryClient.invalidateQueries({ queryKey: ['entities', projectId] })
+      await queryClient.invalidateQueries({ queryKey: ['entities', projectId, entityId] })
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update property')
     }
@@ -124,15 +163,40 @@ export default function EntityDetailPage() {
       </div>
 
       <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">{entity.name}</h1>
-            <p className="text-muted-foreground">Display String: {entity.display_string}</p>
+        <div>
+          {editingEntityName ? (
+            <div className="flex items-center gap-2 mb-2">
+              <Input
+                value={entityName}
+                onChange={(e) => setEntityName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveEntityName()
+                  if (e.key === 'Escape') handleCancelEntityNameEdit()
+                }}
+                className="text-3xl font-bold h-auto py-1"
+                autoFocus
+              />
+              <Button size="sm" onClick={handleSaveEntityName}>Save</Button>
+              <Button size="sm" variant="ghost" onClick={handleCancelEntityNameEdit}>Cancel</Button>
+            </div>
+          ) : (
+            <h1 
+              className="text-3xl font-bold mb-2 cursor-pointer hover:bg-muted/50 inline-block px-2 -mx-2 rounded"
+              onClick={() => setEditingEntityName(true)}
+            >
+              {entity.name}
+            </h1>
+          )}
+          
+          <div className="mt-4">
+            <p className="text-sm font-medium mb-2">Display String Template</p>
+            <DisplayStringParts
+              value={displayString}
+              onChange={setDisplayString}
+              properties={entity.properties}
+              onSave={handleSaveDisplayString}
+            />
           </div>
-          <Button variant="outline" onClick={() => setEntityFormOpen(true)}>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Entity
-          </Button>
         </div>
       </div>
 
@@ -166,15 +230,6 @@ export default function EntityDetailPage() {
         onOpenChange={(open) => !open && setDeleteProperty(null)}
         onConfirm={handleDeleteProperty}
         isLoading={deletePropertyMutation.isPending}
-      />
-
-      <EntityForm
-        open={entityFormOpen}
-        onOpenChange={setEntityFormOpen}
-        entity={entity}
-        properties={entity?.properties || []}
-        onSubmit={handleUpdateEntity}
-        isLoading={updateEntityMutation.isPending}
       />
     </div>
   )
