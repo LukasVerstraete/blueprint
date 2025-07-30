@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Property, PropertyType } from '@/types/entity'
 import { Plus, X } from 'lucide-react'
 
@@ -52,15 +53,6 @@ export function DisplayStringParts({ value, onChange, properties, onSave }: Disp
       }
     }
 
-    // If empty, add one empty string part
-    if (parsedParts.length === 0) {
-      parsedParts.push({
-        id: `part-0`,
-        type: 'string',
-        value: ''
-      })
-    }
-
     setParts(parsedParts)
   }, [value])
 
@@ -94,103 +86,120 @@ export function DisplayStringParts({ value, onChange, properties, onSave }: Disp
 
   const removePart = (id: string) => {
     const newParts = parts.filter(part => part.id !== id)
-    if (newParts.length === 0) {
-      // Always keep at least one part
-      newParts.push({
-        id: `part-${Date.now()}`,
-        type: 'string',
-        value: ''
-      })
-    }
     setParts(newParts)
     updateDisplayString(newParts)
   }
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 flex-wrap">
-        {parts.map((part) => (
-          <div key={part.id} className="flex items-center gap-1 bg-muted rounded px-2 py-1">
-            {editingPart === part.id ? (
-              <>
-                {part.type === 'string' ? (
-                  <Input
-                    value={part.value}
-                    onChange={(e) => updatePart(part.id, e.target.value)}
-                    onBlur={() => setEditingPart(null)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === 'Escape') {
-                        setEditingPart(null)
-                      }
-                    }}
-                    className="h-7 w-32"
-                    placeholder="Text"
-                    autoFocus
-                  />
-                ) : (
-                  <Select
-                    value={part.value}
-                    onValueChange={(value) => {
-                      updatePart(part.id, value)
-                      setEditingPart(null)
-                    }}
-                  >
-                    <SelectTrigger className="h-7 w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableProperties.map((property) => (
-                        <SelectItem key={property.id} value={property.property_name}>
-                          {property.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </>
-            ) : (
-              <span
-                className="cursor-pointer hover:underline text-sm"
-                onClick={() => setEditingPart(part.id)}
+      {parts.length === 0 ? (
+        <div className="border-2 border-dashed rounded-lg p-4 text-center">
+          <p className="text-sm text-muted-foreground mb-2">
+            No display string template defined. Add text or property placeholders to create a template.
+          </p>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8">
+                <Plus className="h-3 w-3 mr-1" />
+                Add Part
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center">
+              <DropdownMenuItem onClick={() => addPart('string')}>
+                Add Text
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => addPart('property')}
+                disabled={availableProperties.length === 0}
               >
-                {part.type === 'string' ? (part.value || '(empty)') : (
-                  <span className="font-mono">{part.value}</span>
-                )}
-              </span>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-5 w-5 p-0"
-              onClick={() => removePart(part.id)}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        ))}
-        
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addPart('string')}
-            className="h-7 text-xs"
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Text
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addPart('property')}
-            className="h-7 text-xs"
-            disabled={availableProperties.length === 0}
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Property
-          </Button>
+                Add Property
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center gap-2 flex-wrap">
+          {parts.map((part) => (
+            <div key={part.id} className="flex items-center gap-1 bg-muted rounded px-2 py-1">
+              {editingPart === part.id ? (
+                <>
+                  {part.type === 'string' ? (
+                    <Input
+                      value={part.value}
+                      onChange={(e) => updatePart(part.id, e.target.value)}
+                      onBlur={() => setEditingPart(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === 'Escape') {
+                          setEditingPart(null)
+                        }
+                      }}
+                      className="h-7 w-32"
+                      placeholder="Text"
+                      autoFocus
+                    />
+                  ) : (
+                    <Select
+                      value={part.value}
+                      onValueChange={(value) => {
+                        updatePart(part.id, value)
+                        setEditingPart(null)
+                      }}
+                    >
+                      <SelectTrigger className="h-7 w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableProperties.map((property) => (
+                          <SelectItem key={property.id} value={property.property_name}>
+                            {property.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </>
+              ) : (
+                <span
+                  className="cursor-pointer hover:underline text-sm"
+                  onClick={() => setEditingPart(part.id)}
+                >
+                  {part.type === 'string' ? (part.value || '(empty)') : (
+                    <span className="font-mono">{part.value}</span>
+                  )}
+                </span>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 w-5 p-0"
+                onClick={() => removePart(part.id)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-7 text-xs">
+                <Plus className="h-3 w-3 mr-1" />
+                Add
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => addPart('string')}>
+                Add Text
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => addPart('property')}
+                disabled={availableProperties.length === 0}
+              >
+                Add Property
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
 
       <div className="flex items-center gap-2">
         <p className="text-sm text-muted-foreground">
