@@ -13,7 +13,7 @@ export default function ProjectLayout({
 }) {
   const params = useParams()
   const router = useRouter()
-  const { currentProject, setCurrentProject, projects } = useProjectContext()
+  const { setCurrentProject, projects } = useProjectContext()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   

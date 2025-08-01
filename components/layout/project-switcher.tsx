@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils'
 
 export function ProjectSwitcher() {
   const [open, setOpen] = useState(false)
-  const { currentProject, setCurrentProject, projects, isLoading } = useProjectContext()
+  const { currentProject, projects, isLoading } = useProjectContext()
   const router = useRouter()
 
   if (isLoading) {

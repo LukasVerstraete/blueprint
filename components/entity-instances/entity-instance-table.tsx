@@ -265,7 +265,7 @@ export function EntityInstanceTable() {
         properties: createValues
       })
       cancelCreate()
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation
     }
   }

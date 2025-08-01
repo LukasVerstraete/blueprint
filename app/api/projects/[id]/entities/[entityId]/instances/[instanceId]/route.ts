@@ -70,8 +70,8 @@ export async function GET(
   }
 
   // Build property values
-  const propertyValues: Record<string, any> = {}
-  const instancesByProperty = new Map<string, any[]>()
+  const propertyValues: Record<string, unknown> = {}
+  const instancesByProperty = new Map<string, Array<{ value: string | null; sort_order: number }>>()
   
   propertyInstances.forEach(pi => {
     if (!instancesByProperty.has(pi.property_id)) {

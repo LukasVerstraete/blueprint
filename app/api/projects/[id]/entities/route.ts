@@ -4,7 +4,7 @@ import { CreateEntityInput } from '@/types/entity'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   
@@ -13,7 +13,7 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const projectId = params.id
+  const { id: projectId } = await params
 
   // Check user has access to project
   const { data: role, error: roleError } = await supabase
@@ -73,7 +73,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   
@@ -82,7 +82,7 @@ export async function POST(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const projectId = params.id
+  const { id: projectId } = await params
 
   // Check user has admin access
   const { data: role, error: roleError } = await supabase

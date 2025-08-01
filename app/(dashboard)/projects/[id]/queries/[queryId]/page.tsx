@@ -30,7 +30,6 @@ export default function QueryDetailPage({
   const [queryName, setQueryName] = useState('')
   const [hasChanges, setHasChanges] = useState(false)
   const [currentGroups, setCurrentGroups] = useState<QueryGroupWithRules[]>([])
-  const [_testResults, setTestResults] = useState<Record<string, unknown> | null>(null)
   const [isExecuting, setIsExecuting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -109,8 +108,7 @@ export default function QueryDetailPage({
   const handleTestQuery = async () => {
     setIsExecuting(true)
     try {
-      const result = await executeQuery()
-      setTestResults(result.data)
+      await executeQuery()
     } catch {
       toast.error('Failed to execute query')
     } finally {

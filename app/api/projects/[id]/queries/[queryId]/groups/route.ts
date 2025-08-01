@@ -25,7 +25,7 @@ export async function GET(
   // Order rules within each group
   groups?.forEach(group => {
     if (group.rules) {
-      group.rules.sort((a, b) => a.sort_order - b.sort_order)
+      group.rules.sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
     }
   })
 

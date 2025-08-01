@@ -20,7 +20,7 @@ export function DeletePropertyDialog({ property, open, onOpenChange, onConfirm, 
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Property</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete the property "{property.name}"? This action cannot be undone and will remove all data stored in this property for existing entity instances.
+            Are you sure you want to delete the property &ldquo;{property.name}&rdquo;? This action cannot be undone and will remove all data stored in this property for existing entity instances.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -50,10 +50,10 @@ export function InviteUserDialog({ projectId }: InviteUserDialogProps) {
       
       return response.json()
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'invitations'] })
       toast.success('Invitation sent successfully')
-      console.log('Invitation URL:', data.invitation_url)
+      // Invitation URL available in data.invitation_url if needed
       setOpen(false)
       setEmail('')
       setRole(UserRole.Default)

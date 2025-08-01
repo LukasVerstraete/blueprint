@@ -5,7 +5,7 @@ import { randomBytes } from 'crypto'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   
@@ -17,7 +17,7 @@ export async function GET(
   const { data: userRole } = await supabase
     .from('user_project_roles')
     .select('role')
-    .eq('project_id', params.id)
+    .eq('project_id', (await params).id)
     .eq('user_id', user.id)
     .single()
 
@@ -28,7 +28,7 @@ export async function GET(
   const { data: invitations, error } = await supabase
     .from('project_invitations')
     .select('*')
-    .eq('project_id', params.id)
+    .eq('project_id', (await params).id)
     .is('used_at', null)
     .gte('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
@@ -42,7 +42,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   
@@ -54,7 +54,7 @@ export async function POST(
   const { data: userRole } = await supabase
     .from('user_project_roles')
     .select('role')
-    .eq('project_id', params.id)
+    .eq('project_id', (await params).id)
     .eq('user_id', user.id)
     .single()
 
@@ -62,7 +62,7 @@ export async function POST(
     return NextResponse.json({ error: 'Only administrators can create invitations' }, { status: 403 })
   }
 
-  const { email, role, message } = await request.json()
+  const { email, role } = await request.json()
 
   if (!email || !role) {
     return NextResponse.json({ error: 'Email and role are required' }, { status: 400 })
@@ -72,18 +72,18 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
   }
 
-  // Check if user already exists in project
-  const { data: existingUser } = await supabase
-    .from('user_project_roles')
-    .select('user_id')
-    .eq('project_id', params.id)
-    .eq('user_id', (
-      await supabase.auth.admin.getUserByEmail(email)
-    ).data?.user?.id || '')
+  // Check if email is already invited to project (pending invitation)
+  const { data: existingInvite } = await supabase
+    .from('project_invitations')
+    .select('id')
+    .eq('project_id', (await params).id)
+    .eq('email', email)
+    .is('used_at', null)
+    .gte('expires_at', new Date().toISOString())
     .single()
 
-  if (existingUser) {
-    return NextResponse.json({ error: 'User already exists in project' }, { status: 400 })
+  if (existingInvite) {
+    return NextResponse.json({ error: 'User already has a pending invitation' }, { status: 400 })
   }
 
   // Generate invitation token
@@ -94,7 +94,7 @@ export async function POST(
   const { data: invitation, error } = await supabase
     .from('project_invitations')
     .insert({
-      project_id: params.id,
+      project_id: (await params).id,
       email,
       role,
       token,

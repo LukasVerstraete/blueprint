@@ -144,7 +144,7 @@ function SinglePropertyInput({
             <SelectValue placeholder="Please select an option" />
           </SelectTrigger>
           <SelectContent>
-            {entityInstances.map((instance) => (
+            {(entityInstances || []).map((instance) => (
               <SelectItem key={instance.id} value={instance.id}>
                 {instance._displayString || 'Unnamed'}
               </SelectItem>

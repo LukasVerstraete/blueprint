@@ -4,7 +4,7 @@ import { UserRole } from '@/types/project'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   
@@ -16,7 +16,7 @@ export async function GET(
   const { data: userRole } = await supabase
     .from('user_project_roles')
     .select('role')
-    .eq('project_id', params.id)
+    .eq('project_id', (await params).id)
     .eq('user_id', user.id)
     .single()
 
@@ -32,14 +32,14 @@ export async function GET(
       role,
       created_at
     `)
-    .eq('project_id', params.id)
+    .eq('project_id', (await params).id)
     .order('created_at', { ascending: false })
 
   if (rolesError) {
     return NextResponse.json({ error: rolesError.message }, { status: 500 })
   }
 
-  const userIds = userRoles?.map(ur => ur.user_id) || []
+  const _userIds = userRoles?.map(ur => ur.user_id) || []
   
   const { data: authUsers, error: usersError } = await supabase
     .auth.admin.listUsers()
@@ -64,7 +64,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   
@@ -76,7 +76,7 @@ export async function PATCH(
   const { data: adminRole } = await supabase
     .from('user_project_roles')
     .select('role')
-    .eq('project_id', params.id)
+    .eq('project_id', (await params).id)
     .eq('user_id', user.id)
     .single()
 
@@ -101,7 +101,7 @@ export async function PATCH(
   const { error } = await supabase
     .from('user_project_roles')
     .update({ role })
-    .eq('project_id', params.id)
+    .eq('project_id', (await params).id)
     .eq('user_id', user_id)
 
   if (error) {

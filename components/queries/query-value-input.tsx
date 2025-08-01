@@ -69,7 +69,7 @@ export function QueryValueInput({
     case PropertyType.Date:
       return (
         <FormattedDateInput
-          type="date"
+          type={PropertyType.Date}
           value={value || ''}
           onChange={(val) => onChange(val || null)}
         />
@@ -78,7 +78,7 @@ export function QueryValueInput({
     case PropertyType.DateTime:
       return (
         <FormattedDateInput
-          type="datetime"
+          type={PropertyType.DateTime}
           value={value || ''}
           onChange={(val) => onChange(val || null)}
         />
@@ -87,7 +87,7 @@ export function QueryValueInput({
     case PropertyType.Time:
       return (
         <FormattedDateInput
-          type="time"
+          type={PropertyType.Time}
           value={value || ''}
           onChange={(val) => onChange(val || null)}
         />

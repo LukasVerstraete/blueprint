@@ -5,7 +5,7 @@ import { validatePropertyType, detectCycles, toCamelCase } from '@/lib/entity-ut
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string; entityId: string; propertyId: string } }
+  { params }: { params: Promise<{ id: string; entityId: string; propertyId: string }> }
 ) {
   const supabase = await createClient()
   
@@ -14,9 +14,7 @@ export async function PUT(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const projectId = params.id
-  const entityId = params.entityId
-  const propertyId = params.propertyId
+  const { id: projectId, entityId, propertyId } = await params
 
   // Check user has admin access
   const { data: role, error: roleError } = await supabase
@@ -134,7 +132,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string; entityId: string; propertyId: string } }
+  { params }: { params: Promise<{ id: string; entityId: string; propertyId: string }> }
 ) {
   const supabase = await createClient()
   
@@ -143,9 +141,7 @@ export async function DELETE(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const projectId = params.id
-  const entityId = params.entityId
-  const propertyId = params.propertyId
+  const { id: projectId, entityId, propertyId } = await params
 
   // Check user has admin access
   const { data: role, error: roleError } = await supabase

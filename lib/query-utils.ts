@@ -116,12 +116,12 @@ async function queryPropertyInstances(
 /**
  * Apply Supabase operator based on query operator
  */
-function applyOperator<T extends Record<string, unknown>>(
-  query: T,
+function applyOperator(
+  query: any,
   operator: QueryOperator,
   value: string | null,
   _propertyType: PropertyType
-): T {
+): any {
   switch (operator) {
     // String operators
     case 'equals':

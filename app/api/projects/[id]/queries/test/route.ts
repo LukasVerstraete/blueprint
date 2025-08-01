@@ -12,7 +12,7 @@ export async function GET(
   const { data: { user }, error: userError } = await supabase.auth.getUser()
 
   // Try a simple query to test connection and RLS
-  const { data: testData, error: testError, count } = await supabase
+  const { error: testError, count } = await supabase
     .from('queries')
     .select('*', { count: 'exact', head: true })
     .eq('project_id', projectId)

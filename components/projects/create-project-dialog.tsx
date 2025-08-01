@@ -30,7 +30,7 @@ export function CreateProjectDialog() {
       await createProject.mutateAsync({ name: projectName.trim() })
       setOpen(false)
       setProjectName('')
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation hook
     }
   }

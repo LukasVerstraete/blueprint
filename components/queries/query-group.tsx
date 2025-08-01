@@ -187,7 +187,7 @@ export function QueryGroup({
             />
           ))}
 
-          {group.groups?.map((nestedGroup) => (
+          {group.groups?.map((nestedGroup, index) => (
             <QueryGroup
               key={nestedGroup.id}
               group={nestedGroup}

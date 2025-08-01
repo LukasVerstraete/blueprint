@@ -1,7 +1,6 @@
 'use client'
 
-import { UserPlus, Shield, ShieldCheck, User } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Shield, ShieldCheck, User } from 'lucide-react'
 import { useProjectContext } from '@/app/providers/project-provider'
 import { useProjectUsers, useUpdateUserRole } from '@/hooks/use-project-users'
 import { RoleGuard } from '@/components/auth/role-guard'
@@ -9,7 +8,6 @@ import { UserRole } from '@/types/project'
 import { formatDate } from '@/lib/date-utils'
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,

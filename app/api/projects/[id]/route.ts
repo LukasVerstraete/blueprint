@@ -4,7 +4,7 @@ import { UpdateProjectInput, UserRole } from '@/types/project'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   
@@ -19,7 +19,7 @@ export async function GET(
       *,
       user_project_roles!inner(role)
     `)
-    .eq('id', params.id)
+    .eq('id', (await params).id)
     .eq('user_project_roles.user_id', user.id)
     .single()
 
@@ -40,7 +40,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   
@@ -52,7 +52,7 @@ export async function PATCH(
   const { data: role } = await supabase
     .from('user_project_roles')
     .select('role')
-    .eq('project_id', params.id)
+    .eq('project_id', (await params).id)
     .eq('user_id', user.id)
     .single()
 
@@ -62,14 +62,14 @@ export async function PATCH(
 
   const body: UpdateProjectInput = await request.json()
 
-  const updateData: any = {}
+  const updateData: Partial<{ name: string; is_deleted: boolean }> = {}
   if (body.name !== undefined) updateData.name = body.name
   if (body.is_deleted !== undefined) updateData.is_deleted = body.is_deleted
 
   const { data: project, error } = await supabase
     .from('projects')
     .update(updateData)
-    .eq('id', params.id)
+    .eq('id', (await params).id)
     .select()
     .single()
 
@@ -85,7 +85,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   
@@ -97,7 +97,7 @@ export async function DELETE(
   const { data: role } = await supabase
     .from('user_project_roles')
     .select('role')
-    .eq('project_id', params.id)
+    .eq('project_id', (await params).id)
     .eq('user_id', user.id)
     .single()
 
@@ -108,7 +108,7 @@ export async function DELETE(
   const { error } = await supabase
     .from('projects')
     .update({ is_deleted: true })
-    .eq('id', params.id)
+    .eq('id', (await params).id)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

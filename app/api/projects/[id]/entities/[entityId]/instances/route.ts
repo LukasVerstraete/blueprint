@@ -98,7 +98,7 @@ export async function GET(
     }
 
     // Group property instances by entity instance
-    const propertyInstancesByEntity = new Map<string, any[]>()
+    const propertyInstancesByEntity = new Map<string, Array<{property_id: string; value: string | null; sort_order: number}>>()
     propertyInstances.forEach(pi => {
       if (!propertyInstancesByEntity.has(pi.entity_instance_id)) {
         propertyInstancesByEntity.set(pi.entity_instance_id, [])
@@ -109,10 +109,10 @@ export async function GET(
     // Build the response with resolved property values
     const instancesWithProperties: EntityInstanceWithProperties[] = instances.map(instance => {
       const instancePropertyInstances = propertyInstancesByEntity.get(instance.id) || []
-      const propertyValues: Record<string, any> = {}
+      const propertyValues: Record<string, unknown> = {}
 
       // Group property instances by property
-      const instancesByProperty = new Map<string, any[]>()
+      const instancesByProperty = new Map<string, Array<{value: string | null; sort_order: number}>>()
       instancePropertyInstances.forEach(pi => {
         if (!instancesByProperty.has(pi.property_id)) {
           instancesByProperty.set(pi.property_id, [])
@@ -257,7 +257,7 @@ export async function POST(
   }
 
   // Create property instances
-  const propertyInstancesData: any[] = []
+  const propertyInstancesData: Array<{entity_instance_id: string; property_id: string; value: string; sort_order: number; created_by: string; last_modified_by: string}> = []
   
   for (const [propertyName, value] of Object.entries(body.properties)) {
     const property = propertyMap.get(propertyName)!
