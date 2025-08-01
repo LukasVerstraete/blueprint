@@ -223,6 +223,22 @@ export default function EntityDetailPage() {
         />
       </div>
 
+      <div className="mt-8 pt-8 border-t">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">Data Management</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              View and manage instances of this entity
+            </p>
+          </div>
+          <Button 
+            onClick={() => router.push(`/projects/${projectId}/entities/${entityId}/instances`)}
+          >
+            View Instances
+          </Button>
+        </div>
+      </div>
+
       <PropertyForm
         open={formOpen}
         onOpenChange={setFormOpen}

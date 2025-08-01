@@ -103,8 +103,16 @@ The project uses a VS Code Dev Container with:
 - Dark mode support through `.dark` class
 
 ### Supabase Integration
+
+**IMPORTANT:** When creating a Supabase client in server-side code (API routes, server components), always use:
+```typescript
+import { createClient } from '@/utils/supabase/server'
+const supabase = await createClient()
+```
+Do NOT import `createServerClient` directly - use the `createClient` function from the utils.
+
 - Client-side: `utils/supabase/client.ts` - Uses `createBrowserClient`
-- Server-side: `utils/supabase/server.ts` - Uses `createServerClient` with Next.js cookies
+- Server-side: `utils/supabase/server.ts` - Exports `createClient` function (internally uses `createServerClient` with Next.js cookies)
 - Middleware: `middleware.ts` - Currently disabled due to Edge Runtime compatibility issues with Supabase
 - Middleware matcher configured to exclude static assets
 
@@ -128,6 +136,30 @@ Note: No `.env` file is used since Vercel manages production environment variabl
 - Prefer `const` over `let`, never use `var`
 - Unused variables/parameters should be prefixed with underscore
 - Avoid `console.log` in production code
+
+### Date Formatting
+- All dates displayed to users use dd/MM/yyyy format (e.g., 31/07/2025)
+- All datetimes displayed to users use dd/MM/yyyy HH:mm format (e.g., 31/07/2025 14:30)
+- Date formatting utilities are in `/lib/date-utils.ts`:
+  - `formatDate(dateString)` - Formats dates as dd/MM/yyyy
+  - `formatDateTime(dateTimeString)` - Formats datetimes as dd/MM/yyyy HH:mm
+  - `formatTime(timeString)` - Formats times as HH:mm
+  - `parseDate(displayDate)` - Converts dd/MM/yyyy back to ISO format for storage
+  - `parseDateTime(displayDateTime)` - Converts dd/MM/yyyy HH:mm back to ISO format
+  - `parseTime(displayTime)` - Converts HH:mm back to storage format
+- The `formatDisplayValue` function in `/lib/entity-instance-utils.ts` automatically uses these formatters for date/time property types
+- Always use these utilities instead of `toLocaleDateString()` or `date-fns` for consistency
+
+#### Date Input Components
+- **FormattedDateInput** (`/components/properties/formatted-date-input.tsx`):
+  - Handles user input for dates, datetimes, and times
+  - Shows dates in dd/MM/yyyy format while editing
+  - Automatically converts between display format and ISO storage format
+  - Shows appropriate placeholders (dd/MM/yyyy, dd/MM/yyyy HH:mm, HH:mm)
+- **PropertyInput** (`/components/entity-instances/property-input.tsx`):
+  - Uses FormattedDateInput for all date/time property types
+  - Do NOT use native HTML5 date inputs (`<input type="date">`) as they show dates in browser's locale format
+- **Important**: All date values are stored in ISO format in the database but displayed in dd/MM/yyyy format to users
 
 ### Database Migrations
 
