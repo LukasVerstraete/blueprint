@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { UpdateContainerInput } from '@/types/page'
 
-export async function PUT(
+// PATCH method for partial updates (preferred for partial modifications)
+export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string; pageId: string; containerId: string }> }
 ) {
@@ -84,12 +85,18 @@ export async function PUT(
       return NextResponse.json({ error: 'Grid columns must be at least 1' }, { status: 400 })
     }
 
-    // Build update object
+    // Build update object - only include provided fields
     const updateData: Record<string, unknown> = {
-      ...json,
       last_modified_by: user.id,
       updated_at: new Date().toISOString()
     }
+
+    // Only include fields that were provided in the request
+    Object.keys(json).forEach(key => {
+      if (json[key as keyof UpdateContainerInput] !== undefined) {
+        updateData[key] = json[key as keyof UpdateContainerInput]
+      }
+    })
 
     // Clear flex properties if switching to grid
     if (json.layout_type === 'grid') {
@@ -117,9 +124,18 @@ export async function PUT(
 
     return NextResponse.json({ container })
   } catch (error) {
-    console.error('Error in container PUT:', error)
+    console.error('Error in container PATCH:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+}
+
+// PUT method for full replacement (kept for backwards compatibility)
+export async function PUT(
+  request: NextRequest,
+  context: { params: Promise<{ id: string; pageId: string; containerId: string }> }
+) {
+  // Delegate to PATCH since the logic is the same
+  return PATCH(request, context)
 }
 
 export async function DELETE(

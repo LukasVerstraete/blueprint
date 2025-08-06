@@ -146,12 +146,13 @@ This document outlines the implementation phases for Blueprint, organized by dep
    - Result pagination
    - Query caching with TanStack Query
 
-### Phase 8: Page Builder - Structure
+### Phase 8: Page Builder - Structure ✅
+**Status:** Completed
 **Dependencies:** Phase 7  
 **Priority:** High - Core UI system  
 **Estimated Time:** 2 weeks
 
-1. **Page Management**
+1. **Page Management** ✅
    - Page creation/editing
    - Page hierarchy (unlimited subpages)
    - Page parameters with separate table:
@@ -161,41 +162,54 @@ This document outlines the implementation phases for Blueprint, organized by dep
    - URL structure (ID-based: /{pageId}/{subpageId}?params)
    - Breadcrumb template support
 
-2. **Container System**
+2. **Container System** ✅
    - Container CRUD with both page_id and parent_container_id
    - Flex/Grid layouts with configuration:
      - Default spacing between elements (16px)
      - Internal padding
      - Optional background color
+     - Width, height, min-height properties
    - Nested containers (unlimited depth)
-   - Visual layout editor
+   - Visual layout editor with split-view interface
 
-### Phase 9: Page Builder - Components
+3. **Drag and Drop Implementation** ✅
+   - @dnd-kit library integration for modern drag-and-drop
+   - Container reordering and reorganization
+   - Visual feedback and drag overlays
+   - Keyboard accessibility support
+   - Validation to prevent invalid drops
+
+### Phase 9: Page Builder - Components ✅
+**Status:** Completed  
 **Dependencies:** Phase 8  
 **Priority:** High - User-facing features  
 **Estimated Time:** 3-4 weeks
 
-1. **Component Implementation Order:**
-   - Label Component:
+1. **Component Implementation Order:** ✅
+   - Label Component: ✅
      - Static text, entity display, property value, query result modes
-   - Property Component:
+   - Property Component: ✅
      - Shows property name and value below
-   - List Component:
+   - List Component: ✅
      - Query-based with pagination
-   - Table Component:
+   - Table Component: ✅
      - Separate table_columns configuration table
      - Column visibility and ordering
-   - Form Component:
+   - Form Component: ✅
      - Separate form_properties configuration table
      - Create/Update modes
      - Column layout (1-4 columns)
      - Property visibility and ordering
 
-2. **Component Features**
-   - Configuration storage as key-value pairs
-   - Query parameter binding from URL
-   - Entity instance resolution
-   - Error states with graceful degradation
+2. **Component Features** ✅
+   - Configuration storage as key-value pairs ✅
+   - Configuration dialogs with click-to-configure functionality ✅
+     - Added `shouldOpenConfig` and `onConfigClose` props to `BaseComponentProps`
+     - Updated all components to respond to configuration triggers
+     - Connected "Configure" menu option to open dialogs
+   - Query parameter binding from URL ✅
+   - Entity instance resolution ✅
+   - Error states with graceful degradation ✅
 
 3. **Form Component Specifics**
    - Create/Update modes

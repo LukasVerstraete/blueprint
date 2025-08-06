@@ -139,6 +139,20 @@ Planned improvements include:
 
 The Page Builder allows administrators and content managers to create user interfaces without coding. Pages are composed of predefined components that can be configured and arranged.
 
+### Component Configuration
+
+All components in the Page Builder can be configured through intuitive dialog interfaces:
+
+1. **Accessing Configuration**: 
+   - Click the three-dot menu on any component
+   - Select "Configure" to open the configuration dialog
+   - Changes are saved automatically when the dialog is closed
+
+2. **Configuration Storage**:
+   - Component configurations are stored as key-value pairs
+   - Each component type has its own specific configuration options
+   - Configurations persist across page reloads and sessions
+
 ### Label Component
 
 Labels are the simplest display components, used to show static or dynamic text.
@@ -840,6 +854,48 @@ Page Root
 - Flexible nesting for complex layouts
 - Consistent spacing with defaults
 - Visual hierarchy through containers
+
+#### Drag and Drop System
+
+The page builder implements a sophisticated drag-and-drop system using @dnd-kit for reordering and reorganizing containers.
+
+**Implementation Details:**
+- Built with @dnd-kit/core and @dnd-kit/sortable for modern, accessible drag-and-drop
+- Supports keyboard navigation and screen readers
+- Smooth animations and visual feedback during drag operations
+
+**Drag and Drop Features:**
+
+1. **Container Reordering**
+   - Drag containers by their handle (grip icon on the left)
+   - Move containers between different parents
+   - Reorder containers within the same parent
+   - Drop containers at the root level (canvas)
+
+2. **Visual Feedback**
+   - Dragging container becomes semi-transparent
+   - Drop zones show blue highlight when hovering
+   - Custom drag overlay shows container type and child count
+   - Smooth transitions between states
+
+3. **Validation and Safety**
+   - Prevents dropping a container into itself
+   - Prevents dropping a container into its own descendants
+   - Shows error toast for invalid operations
+   - Maintains data integrity during moves
+
+4. **Technical Architecture**
+   - DndContext wraps the entire page editor
+   - Each container is both draggable (via DraggableContainer) and droppable
+   - Canvas itself is a drop zone for root-level containers
+   - Sensors configured for both mouse and keyboard interaction
+
+**User Interaction:**
+- Click and drag the grip handle to start dragging
+- Drop on another container to make it a child
+- Drop on the canvas background to move to root level
+- Visual indicators show valid drop zones
+- Undo/redo support for all drag operations
 
 ### Application Layout
 

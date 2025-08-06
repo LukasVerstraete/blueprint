@@ -43,8 +43,8 @@ export function useCreateContainer(projectId: string, pageId: string) {
       return data.container as Container
     },
     onSuccess: () => {
+      // Only invalidate containers, not the page itself
       queryClient.invalidateQueries({ queryKey: ['containers', projectId, pageId] })
-      queryClient.invalidateQueries({ queryKey: ['pages', projectId, pageId] })
     }
   })
 }
@@ -69,8 +69,8 @@ export function useUpdateContainer(projectId: string, pageId: string, containerI
       return data.container as Container
     },
     onSuccess: () => {
+      // Only invalidate containers, not the page itself
       queryClient.invalidateQueries({ queryKey: ['containers', projectId, pageId] })
-      queryClient.invalidateQueries({ queryKey: ['pages', projectId, pageId] })
     }
   })
 }
@@ -92,8 +92,8 @@ export function useDeleteContainer(projectId: string, pageId: string) {
       return await response.json()
     },
     onSuccess: () => {
+      // Only invalidate containers, not the page itself
       queryClient.invalidateQueries({ queryKey: ['containers', projectId, pageId] })
-      queryClient.invalidateQueries({ queryKey: ['pages', projectId, pageId] })
     }
   })
 }

@@ -85,9 +85,13 @@ export function useUpdatePage(projectId: string, pageId: string) {
       const data = await response.json()
       return data.page as Page
     },
-    onSuccess: () => {
+    onSuccess: (updatedPage) => {
+      // Update the pages list query
       queryClient.invalidateQueries({ queryKey: ['pages', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['pages', projectId, pageId] })
+      
+      // Instead of invalidating the specific page query, update it directly
+      // This prevents the visual editor from reloading
+      queryClient.setQueryData(['pages', projectId, pageId], updatedPage)
     }
   })
 }
@@ -151,8 +155,7 @@ export function useCreatePageParameter(projectId: string, pageId: string) {
       return data.parameter as PageParameter
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pages', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['pages', projectId, pageId] })
+      // Only invalidate the parameters query, not the entire page
       queryClient.invalidateQueries({ queryKey: ['pages', projectId, pageId, 'parameters'] })
     }
   })
@@ -178,8 +181,7 @@ export function useUpdatePageParameter(projectId: string, pageId: string, parame
       return data.parameter as PageParameter
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pages', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['pages', projectId, pageId] })
+      // Only invalidate the parameters query, not the entire page
       queryClient.invalidateQueries({ queryKey: ['pages', projectId, pageId, 'parameters'] })
     }
   })
@@ -202,8 +204,7 @@ export function useDeletePageParameter(projectId: string, pageId: string) {
       return await response.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pages', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['pages', projectId, pageId] })
+      // Only invalidate the parameters query, not the entire page
       queryClient.invalidateQueries({ queryKey: ['pages', projectId, pageId, 'parameters'] })
     }
   })

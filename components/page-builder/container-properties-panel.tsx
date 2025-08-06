@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Container, LayoutType, FlexDirection, FlexJustify, FlexAlign } from '@/types/page'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { X } from 'lucide-react'
+import { Subject } from 'rxjs'
+import { debounceTime } from 'rxjs/operators'
 
 interface ContainerPropertiesPanelProps {
   container: Container
@@ -39,6 +41,9 @@ export function ContainerPropertiesPanel({
   const [width, setWidth] = useState(container.width || '')
   const [height, setHeight] = useState(container.height || '')
   const [minHeight, setMinHeight] = useState(container.min_height || '')
+  
+  // RxJS Subject for color picker debouncing
+  const colorSubject = useRef(new Subject<string>())
 
   // Update state when container prop changes
   useEffect(() => {
@@ -54,6 +59,21 @@ export function ContainerPropertiesPanel({
     setHeight(container.height || '')
     setMinHeight(container.min_height || '')
   }, [container])
+
+  // Set up RxJS observable for color picker debouncing
+  useEffect(() => {
+    const subscription = colorSubject.current
+      .pipe(debounceTime(300))
+      .subscribe((color) => {
+        setBackgroundColor(color)
+        // Update the container in the visual editor
+        onUpdate?.(container.id, { background_color: color || null })
+      })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [container.id, onUpdate])
 
   // Update immediately when properties change
   const handleUpdate = (updates: any) => {
@@ -122,6 +142,11 @@ export function ContainerPropertiesPanel({
   const handleBackgroundColorChange = (value: string) => {
     setBackgroundColor(value)
     handleUpdate({ background_color: value || null })
+  }
+
+  const handleColorPickerChange = (value: string) => {
+    // Push the color value to the observable
+    colorSubject.current.next(value)
   }
 
   return (
@@ -295,7 +320,7 @@ export function ContainerPropertiesPanel({
               <Input
                 type="color"
                 value={backgroundColor || '#ffffff'}
-                onChange={(e) => handleBackgroundColorChange(e.target.value)}
+                onChange={(e) => handleColorPickerChange(e.target.value)}
                 className="w-12 p-1 h-9"
               />
             </div>

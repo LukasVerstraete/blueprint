@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { CreatePageInput, PageWithChildren } from '@/types/page'
+import { CreatePageInput, PageWithChildren, LayoutType, FlexDirection, FlexAlign } from '@/types/page'
 
 export async function GET(
   request: NextRequest,
@@ -136,6 +136,27 @@ export async function POST(
     if (error) {
       console.error('Error creating page:', error)
       return NextResponse.json({ error: 'Failed to create page' }, { status: 500 })
+    }
+
+    // Auto-create root container for the page
+    const { error: containerError } = await supabase
+      .from('containers')
+      .insert({
+        page_id: page.id,
+        parent_container_id: null,
+        layout_type: LayoutType.Flex,
+        flex_direction: FlexDirection.Column,
+        flex_align: FlexAlign.Stretch,
+        spacing: 24,
+        padding: 24,
+        sort_order: 0,
+        created_by: user.id,
+        last_modified_by: user.id
+      })
+
+    if (containerError) {
+      console.error('Error creating root container:', containerError)
+      // Don't fail the page creation, just log the error
     }
 
     return NextResponse.json({ page })
