@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { ComponentConfigDialogProps, getConfigObject } from '../types'
 import { usePageBuilderContext } from '../../page-builder-context'
-import { useEntities } from '@/hooks/use-entities'
+import { useEntitiesWithProperties } from '@/hooks/use-entities'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -34,7 +34,7 @@ export function PropertyConfigDialog({
   containerId
 }: ComponentConfigDialogProps) {
   const { onUpdateComponentConfig } = usePageBuilderContext()
-  const { data: entities } = useEntities(projectId)
+  const { data: entities } = useEntitiesWithProperties(projectId)
   
   // Get current config
   const currentConfig = getConfigObject(component)

@@ -116,7 +116,11 @@ export function ComponentWrapper({
         </div>
 
         {/* Component Content */}
-        <div className="p-4">
+        <div className={cn(
+          component.component_type === 'list' || component.component_type === 'table' 
+            ? "" 
+            : "p-4"
+        )}>
           {children}
         </div>
       </div>

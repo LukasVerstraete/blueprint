@@ -10,16 +10,17 @@ import { PropertyValueDisplay } from '@/components/properties/property-value-dis
 export function PropertyRenderer({ 
   component, 
   pageParameters = {}, 
-  projectId 
+  projectId,
+  localConfigUpdates
 }: BaseComponentProps) {
   const [propertyValue, setPropertyValue] = useState<any>(null)
   const [propertyInfo, setPropertyInfo] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Get configuration
-  const propertyId = getConfigValue(component, 'propertyId')
-  const entityId = getConfigValue(component, 'entityId')
-  const entityInstanceId = getConfigValue(component, 'entityInstanceId')
+  // Get configuration (with local updates for immediate feedback)
+  const propertyId = getConfigValue(component, 'propertyId', undefined, localConfigUpdates)
+  const entityId = getConfigValue(component, 'entityId', undefined, localConfigUpdates)
+  const entityInstanceId = getConfigValue(component, 'entityInstanceId', undefined, localConfigUpdates)
 
   // Resolve entity instance ID from page parameters if needed
   const resolvedEntityInstanceId = entityInstanceId?.startsWith('param:') 

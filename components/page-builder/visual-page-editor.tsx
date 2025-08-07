@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { ContainerWithChildren, Container, LayoutType, FlexDirection, FlexJustify, FlexAlign, CreateContainerInput } from '@/types/page'
 import { ContainerPropertiesPanel } from './container-properties-panel'
+import { ComponentPropertiesPanel } from './component-properties-panel'
 import { CanvasContainer } from './canvas-container'
 import { PageSettingsDialog } from './page-settings-dialog'
 import { PageBuilderProvider } from './page-builder-context'
@@ -884,18 +885,48 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
         const component = container?.components?.find(c => c.id === componentId)
         
         if (component) {
+          // Get the local config updates for this component if any
+          const configUpdates = componentConfigUpdates[componentId]
+          
           const response = await fetch(`/api/projects/${currentProject?.id}/pages/${pageId}/containers/${realContainerId}/components`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               component_type: component.component_type,
-              config: component.config,
+              // Use local updates if available, otherwise use saved config
+              config: configUpdates || component.config || [],
               sort_order: component.sort_order
             })
           })
           
           if (!response.ok) {
             console.error(`Failed to create component ${componentId}`)
+          } else {
+            // If component has form properties or table columns, save them too
+            const data = await response.json()
+            const newComponentId = data.component?.id
+            
+            if (newComponentId) {
+              // Save form properties if this is a form component
+              const formProps = formPropertiesUpdates[componentId]
+              if (formProps && component.component_type === 'form') {
+                await fetch(`/api/projects/${currentProject?.id}/pages/${pageId}/containers/${realContainerId}/components/${newComponentId}/form-properties`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(formProps)
+                })
+              }
+              
+              // Save table columns if this is a table component
+              const tableCols = tableColumnsUpdates[componentId]
+              if (tableCols && component.component_type === 'table') {
+                await fetch(`/api/projects/${currentProject?.id}/pages/${pageId}/containers/${realContainerId}/components/${newComponentId}/table-columns`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(tableCols)
+                })
+              }
+            }
           }
         }
       }
@@ -962,6 +993,11 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
       
       // Step 5: Update component configurations
       for (const [componentId, config] of Object.entries(componentConfigUpdates)) {
+        // Skip temporary components - they were just created and their config is already saved
+        if (componentId.startsWith('temp_component_')) {
+          continue
+        }
+        
         const component = allContainers.flatMap(c => c.components || []).find(comp => comp.id === componentId)
         if (component) {
           const containerId = allContainers.find(c => c.components?.some(comp => comp.id === componentId))?.id
@@ -981,6 +1017,11 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
       
       // Step 6: Update form properties
       for (const [componentId, properties] of Object.entries(formPropertiesUpdates)) {
+        // Skip temporary components - they were just created
+        if (componentId.startsWith('temp_component_')) {
+          continue
+        }
+        
         const component = allContainers.flatMap(c => c.components || []).find(comp => comp.id === componentId)
         if (component) {
           const containerId = allContainers.find(c => c.components?.some(comp => comp.id === componentId))?.id
@@ -1000,6 +1041,11 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
       
       // Step 7: Update table columns
       for (const [componentId, columns] of Object.entries(tableColumnsUpdates)) {
+        // Skip temporary components - they were just created
+        if (componentId.startsWith('temp_component_')) {
+          continue
+        }
+        
         const component = allContainers.flatMap(c => c.components || []).find(comp => comp.id === componentId)
         if (component) {
           const containerId = allContainers.find(c => c.components?.some(comp => comp.id === componentId))?.id
@@ -1107,6 +1153,23 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
   }
 
   const selectedContainer = selectedContainerId ? findContainer(currentContainers, selectedContainerId) : null
+  
+  // Find selected component
+  const findComponent = (containers: ContainerWithChildren[], componentId: string): any => {
+    for (const container of containers) {
+      if (container.components) {
+        const component = container.components.find(c => c.id === componentId)
+        if (component) return component
+      }
+      if (container.containers) {
+        const found = findComponent(container.containers, componentId)
+        if (found) return found
+      }
+    }
+    return null
+  }
+  
+  const selectedComponent = selectedComponentId ? findComponent(currentContainers, selectedComponentId) : null
 
   // Context value for page builder
   const pageBuilderContextValue = {
@@ -1225,7 +1288,10 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
                 "hover:bg-accent transition-colors",
                 selectedContainerId === currentContainers[0]?.id && "bg-accent"
               )}
-              onClick={() => setSelectedContainerId(currentContainers[0]?.id || null)}
+              onClick={() => {
+                setSelectedContainerId(currentContainers[0]?.id || null)
+                setSelectedComponentId(null)
+              }}
             >
               <Layers className="h-4 w-4" />
               <h3 className="font-semibold text-sm">Page Structure</h3>
@@ -1243,7 +1309,10 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
                   <ContainerTree 
                     containers={currentContainers[0].containers}
                     selectedId={selectedContainerId}
-                    onSelect={setSelectedContainerId}
+                    onSelect={(containerId) => {
+                      setSelectedContainerId(containerId)
+                      setSelectedComponentId(null)
+                    }}
                     onDragStart={() => {}}
                     onDragEnd={() => {}}
                   />
@@ -1293,7 +1362,10 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
                       key={container.id}
                       container={container}
                       isSelected={selectedContainerId === container.id}
-                      onSelect={setSelectedContainerId}
+                      onSelect={(containerId) => {
+                        setSelectedContainerId(containerId)
+                        if (containerId) setSelectedComponentId(null)
+                      }}
                       pageId={pageId}
                       onUpdate={updateContainerLocally}
                       onCreateChild={handleCreateContainer}
@@ -1303,7 +1375,10 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
                       overId={overId as string}
                       isPreview={isPreview}
                       selectedComponentId={selectedComponentId}
-                      onSelectComponent={setSelectedComponentId}
+                      onSelectComponent={(componentId) => {
+                        setSelectedComponentId(componentId)
+                        if (componentId) setSelectedContainerId(null)
+                      }}
                       pageParameters={{}} // TODO: Get from URL params
                       onAddComponent={addComponentLocally}
                       onDeleteComponent={deleteComponentLocally}
@@ -1323,12 +1398,25 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
         </div>
 
         {/* Right Panel - Properties */}
-        {!isPreview && selectedContainer && (
+        {!isPreview && selectedContainer && !selectedComponent && (
           <ContainerPropertiesPanel
             container={selectedContainer}
             pageId={pageId}
             onClose={() => setSelectedContainerId(null)}
             onUpdate={updateContainerLocally}
+          />
+        )}
+        {!isPreview && selectedComponent && (
+          <ComponentPropertiesPanel
+            component={selectedComponent}
+            projectId={currentProject?.id || ''}
+            onUpdate={updateComponentConfigLocally}
+            onUpdateFormProperties={updateFormPropertiesLocally}
+            onUpdateTableColumns={updateTableColumnsLocally}
+            onClose={() => setSelectedComponentId(null)}
+            localConfigUpdates={componentConfigUpdates[selectedComponent.id]}
+            formPropertiesUpdates={formPropertiesUpdates[selectedComponent.id]}
+            tableColumnsUpdates={tableColumnsUpdates[selectedComponent.id]}
           />
         )}
       </div>

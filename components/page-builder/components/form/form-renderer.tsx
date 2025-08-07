@@ -19,20 +19,22 @@ export function FormRenderer({
   component, 
   pageParameters = {}, 
   projectId,
-  isPreview
+  isPreview,
+  localConfigUpdates
 }: BaseComponentProps) {
   const [formValues, setFormValues] = useState<Record<string, any>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [entityInstancesCache, setEntityInstancesCache] = useState<Record<string, EntityInstanceWithProperties[]>>({})
   
-  // Get configuration
-  const formType = getConfigValue(component, 'formType', 'create') as FormType
-  const entityId = getConfigValue(component, 'entityId')
-  const queryId = getConfigValue(component, 'queryId')
-  const columns = parseInt(getConfigValue(component, 'columns', '1') || '1')
+  // Get configuration (with local updates for immediate feedback)
+  const formType = getConfigValue(component, 'formType', 'create', localConfigUpdates) as FormType
+  const entityId = getConfigValue(component, 'entityId', undefined, localConfigUpdates)
+  const queryId = getConfigValue(component, 'queryId', undefined, localConfigUpdates)
+  const columns = parseInt(getConfigValue(component, 'columns', '1', localConfigUpdates) || '1')
   const submitButtonText = getConfigValue(component, 'submitButtonText', 
-    formType === 'create' ? 'Create' : 'Update'
+    formType === 'create' ? 'Create' : 'Update',
+    localConfigUpdates
   )
   
   // Fetch entity

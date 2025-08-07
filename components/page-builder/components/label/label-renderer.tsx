@@ -14,18 +14,19 @@ type LabelType = 'static' | 'entity' | 'property' | 'query'
 export function LabelRenderer({ 
   component, 
   pageParameters = {}, 
-  projectId 
+  projectId,
+  localConfigUpdates
 }: BaseComponentProps) {
   const [displayValue, setDisplayValue] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
 
-  // Get configuration
-  const type = getConfigValue(component, 'type', 'static') as LabelType
-  const text = getConfigValue(component, 'text', '')
-  const entityInstanceId = getConfigValue(component, 'entityInstanceId')
-  const propertyId = getConfigValue(component, 'propertyId')
-  const queryId = getConfigValue(component, 'queryId')
-  const entityId = getConfigValue(component, 'entityId')
+  // Get configuration (with local updates for immediate feedback)
+  const type = getConfigValue(component, 'type', 'static', localConfigUpdates) as LabelType
+  const text = getConfigValue(component, 'text', '', localConfigUpdates)
+  const entityInstanceId = getConfigValue(component, 'entityInstanceId', undefined, localConfigUpdates)
+  const propertyId = getConfigValue(component, 'propertyId', undefined, localConfigUpdates)
+  const queryId = getConfigValue(component, 'queryId', undefined, localConfigUpdates)
+  const entityId = getConfigValue(component, 'entityId', undefined, localConfigUpdates)
 
   // Resolve entity instance ID from page parameters if needed
   const resolvedEntityInstanceId = entityInstanceId?.startsWith('param:') 
@@ -115,7 +116,7 @@ export function LabelRenderer({
           break
 
         case 'query':
-          if (queryResult && queryResult.instances.length > 0) {
+          if (queryResult && queryResult.data && queryResult.data.length > 0) {
             // For now, just show the count or first result's display string
             setDisplayValue(`${queryResult.total} results`)
           } else if (!queryLoading && queryId) {

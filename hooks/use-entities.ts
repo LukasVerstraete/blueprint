@@ -26,6 +26,21 @@ export function useEntities(projectId: string) {
   })
 }
 
+export function useEntitiesWithProperties(projectId: string) {
+  return useQuery({
+    queryKey: ['entities-with-properties', projectId],
+    queryFn: async () => {
+      const response = await fetch(`/api/projects/${projectId}/entities/with-properties`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch entities with properties')
+      }
+      const data = await response.json()
+      return data.entities as EntityWithProperties[]
+    },
+    enabled: !!projectId
+  })
+}
+
 export function useEntity(projectId: string, entityId: string) {
   return useQuery({
     queryKey: ['entities', projectId, entityId],

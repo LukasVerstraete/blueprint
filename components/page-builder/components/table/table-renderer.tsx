@@ -22,13 +22,14 @@ export function TableRenderer({
   component, 
   pageParameters = {}, 
   projectId,
-  isPreview
+  isPreview,
+  localConfigUpdates
 }: BaseComponentProps) {
   const [page, setPage] = useState(1)
   
-  // Get configuration
-  const queryId = getConfigValue(component, 'queryId')
-  const pageSize = parseInt(getConfigValue(component, 'pageSize', '50') || '50')
+  // Get configuration (with local updates for immediate feedback)
+  const queryId = getConfigValue(component, 'queryId', undefined, localConfigUpdates)
+  const pageSize = parseInt(getConfigValue(component, 'pageSize', '50', localConfigUpdates) || '50')
   
   // Fetch query details
   const { data: query } = useQuery(projectId, queryId || '')
@@ -92,7 +93,7 @@ export function TableRenderer({
     )
   }
 
-  if (!queryResult || queryResult.instances.length === 0) {
+  if (!queryResult || !queryResult.data || queryResult.data.length === 0) {
     return (
       <div className="text-sm text-muted-foreground p-8 text-center border rounded-lg">
         No data to display
@@ -107,9 +108,8 @@ export function TableRenderer({
 
   return (
     <div className="space-y-4">
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
+      <Table>
+        <TableHeader>
             <TableRow>
               {entity?.display_string && (
                 <TableHead>{entity.name}</TableHead>
@@ -122,11 +122,11 @@ export function TableRenderer({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {queryResult.instances.map((instance) => (
+            {queryResult.data.map((instance) => (
               <TableRow key={instance.id}>
                 {entity?.display_string && (
                   <TableCell className="font-medium">
-                    {resolveDisplayString(entity.display_string, instance.properties)}
+                    {resolveDisplayString(instance, entity.properties || [], entity.display_string)}
                   </TableCell>
                 )}
                 {displayColumns.map((property) => {
@@ -140,8 +140,7 @@ export function TableRenderer({
               </TableRow>
             ))}
           </TableBody>
-        </Table>
-      </div>
+      </Table>
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">

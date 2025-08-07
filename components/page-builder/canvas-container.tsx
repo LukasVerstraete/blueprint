@@ -33,7 +33,7 @@ interface CanvasContainerProps {
   onSelect: (containerId: string) => void
   pageId: string
   onUpdate?: (containerId: string, updates: any) => void
-  onCreateChild?: () => void
+  onCreateChild?: (parentContainerId?: string) => void
   onDelete?: (containerId: string) => void
   selectedContainerId?: string | null
   activeId?: string | null
@@ -79,7 +79,6 @@ export function CanvasContainer({
   tableColumnsUpdates
 }: CanvasContainerProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [configureComponentId, setConfigureComponentId] = useState<string | null>(null)
   const { currentProject } = useProjectContext()
   const containerRef = useRef<HTMLDivElement>(null)
   
@@ -101,14 +100,6 @@ export function CanvasContainer({
 
   const handleAddComponent = (componentType: any) => {
     onAddComponent?.(container.id, componentType)
-  }
-
-  const handleConfigureComponent = (componentId: string) => {
-    setConfigureComponentId(componentId)
-  }
-
-  const handleConfigClose = () => {
-    setConfigureComponentId(null)
   }
 
   // Handle resize
@@ -301,7 +292,7 @@ export function CanvasContainer({
                           isPreview={isPreview}
                           isSelected={selectedComponentId === component.id}
                           onSelect={() => onSelectComponent?.(component.id)}
-                          onConfigure={() => handleConfigureComponent(component.id)}
+                          onConfigure={() => onSelectComponent?.(component.id)}
                           onDelete={() => onDeleteComponent?.(container.id, component.id)}
                           projectId={currentProject?.id || ''}
                           pageId={pageId}
@@ -314,8 +305,7 @@ export function CanvasContainer({
                             projectId={currentProject?.id || ''}
                             pageId={pageId}
                             containerId={container.id}
-                            shouldOpenConfig={configureComponentId === component.id}
-                            onConfigClose={handleConfigClose}
+                            localConfigUpdates={componentConfigUpdates?.[component.id]}
                           />
                         </ComponentWrapper>
                       )

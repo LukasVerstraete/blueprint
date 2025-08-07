@@ -14,14 +14,15 @@ export function ListRenderer({
   component, 
   pageParameters = {}, 
   projectId,
-  isPreview
+  isPreview,
+  localConfigUpdates
 }: BaseComponentProps) {
   const [page, setPage] = useState(1)
   
-  // Get configuration
-  const queryId = getConfigValue(component, 'queryId')
-  const pageSize = parseInt(getConfigValue(component, 'pageSize', '50') || '50')
-  const emptyMessage = getConfigValue(component, 'emptyMessage', 'No items to display')
+  // Get configuration (with local updates for immediate feedback)
+  const queryId = getConfigValue(component, 'queryId', undefined, localConfigUpdates)
+  const pageSize = parseInt(getConfigValue(component, 'pageSize', '50', localConfigUpdates) || '50')
+  const emptyMessage = getConfigValue(component, 'emptyMessage', 'No items to display', localConfigUpdates)
   
   // Fetch query details
   const { data: query } = useQuery(projectId, queryId || '')
@@ -29,8 +30,7 @@ export function ListRenderer({
   // Fetch entity details for display string
   const { data: entity } = useEntity(
     projectId,
-    query?.entity_id || '',
-    { enabled: !!query?.entity_id }
+    query?.entity_id || ''
   )
   
   // Execute query
@@ -74,7 +74,7 @@ export function ListRenderer({
     )
   }
 
-  if (!queryResult || queryResult.instances.length === 0) {
+  if (!queryResult || !queryResult.data || queryResult.data.length === 0) {
     return (
       <div className="text-sm text-muted-foreground p-8 text-center">
         {emptyMessage}
@@ -83,11 +83,10 @@ export function ListRenderer({
   }
 
   return (
-    <div className="space-y-3">
-      <div className="space-y-2">
-        {queryResult.instances.map((instance) => {
+    <div className="space-y-2">
+      {queryResult.data.map((instance) => {
           const displayString = entity?.display_string 
-            ? resolveDisplayString(entity.display_string, instance.properties)
+            ? resolveDisplayString(instance, entity.properties || [], entity.display_string)
             : instance.id
           
           return (
@@ -103,8 +102,7 @@ export function ListRenderer({
               </div>
             </div>
           )
-        })}
-      </div>
+      })}
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-2">
