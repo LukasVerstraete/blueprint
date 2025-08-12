@@ -27,7 +27,20 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   const handleOpen = () => {
     if (!project.is_deleted) {
-      router.push(`/projects/${project.id}`)
+      // Role-based navigation
+      switch (project.user_role) {
+        case UserRole.Default:
+          router.push(`/projects/${project.id}/app`)
+          break
+        case UserRole.ContentManager:
+          router.push(`/projects/${project.id}/pages`)
+          break
+        case UserRole.Administrator:
+          router.push(`/projects/${project.id}/entities`)
+          break
+        default:
+          router.push(`/projects/${project.id}/entities`)
+      }
     }
   }
 

@@ -19,6 +19,7 @@ import {
 import { useProjectContext } from '@/app/providers/project-provider'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { UserRole } from '@/types/project'
 
 export function ProjectSwitcher() {
   const [open, setOpen] = useState(false)
@@ -58,15 +59,20 @@ export function ProjectSwitcher() {
                     key={project.id}
                     value={project.name}
                     onSelect={() => {
-                      const currentPath = window.location.pathname
-                      const pathParts = currentPath.split('/')
-                      
-                      if (pathParts[1] === 'projects' && pathParts[2] && pathParts[3]) {
-                        router.push(`/projects/${project.id}/${pathParts[3]}`)
-                      } else {
-                        router.push(`/projects/${project.id}`)
+                      // Role-based navigation
+                      switch (project.user_role) {
+                        case UserRole.Default:
+                          router.push(`/projects/${project.id}/app`)
+                          break
+                        case UserRole.ContentManager:
+                          router.push(`/projects/${project.id}/pages`)
+                          break
+                        case UserRole.Administrator:
+                          router.push(`/projects/${project.id}/entities`)
+                          break
+                        default:
+                          router.push(`/projects/${project.id}/entities`)
                       }
-                      
                       setOpen(false)
                     }}
                   >

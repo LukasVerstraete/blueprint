@@ -151,8 +151,15 @@ export function TableRenderer({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                // In page builder (isPreview false), only update if actually in preview
+                if (isPreview) {
+                  setPage(p => Math.max(1, p - 1))
+                }
+              }}
+              disabled={!isPreview || page === 1}
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
@@ -160,8 +167,15 @@ export function TableRenderer({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                // In page builder (isPreview false), only update if actually in preview
+                if (isPreview) {
+                  setPage(p => Math.min(totalPages, p + 1))
+                }
+              }}
+              disabled={!isPreview || page === totalPages}
             >
               Next
               <ChevronRight className="h-4 w-4" />

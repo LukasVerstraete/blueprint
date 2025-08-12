@@ -19,8 +19,7 @@ import {
   Square,
   Layers,
   ArrowLeft,
-  Settings,
-  Eye
+  Settings
 } from 'lucide-react'
 import { useCreateContainer } from '@/hooks/use-containers'
 import { useProjectContext } from '@/app/providers/project-provider'
@@ -29,8 +28,6 @@ import { useRouter } from 'next/navigation'
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
-  closestCorners,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -78,7 +75,7 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
   const [newContainerIds, setNewContainerIds] = useState<string[]>([])
   const [deletedComponentIds, setDeletedComponentIds] = useState<{ containerId: string, componentId: string }[]>([])
   const [newComponentIds, setNewComponentIds] = useState<{ containerId: string, componentId: string }[]>([])
-  const [isPreview, setIsPreview] = useState(false)
+  // Preview mode removed - always in edit mode where interactions are disabled
   const [showPageSettings, setShowPageSettings] = useState(false)
   // const canvasRef = useRef<HTMLDivElement>(null)
   
@@ -553,8 +550,8 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
           }
         }
         
-        // Always recurse into containers if not already done
-        if (elementType === 'container' && container.containers && updatedContainer.containers === container.containers) {
+        // Always recurse into containers to ensure nested containers are updated
+        if (container.containers && updatedContainer.containers === container.containers) {
           updatedContainer.containers = removeElement(container.containers)
         }
         
@@ -684,7 +681,7 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
   }
 
   // Move container to a new parent or reorder within same parent
-  const moveContainer = (sourceId: string, targetId: string) => {
+  const _moveContainer = (sourceId: string, targetId: string) => {
     let sourceContainer: ContainerWithChildren | null = null
     let _sourceParentId: string | null = null
     
@@ -1188,7 +1185,7 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
   return (
     <PageBuilderProvider value={pageBuilderContextValue}>
       <DndContext
-        sensors={isPreview ? [] : sensors}
+        sensors={sensors}
         collisionDetection={pointerWithin}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
@@ -1213,14 +1210,6 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
             </div>
             <div className="flex gap-2">
               <Button 
-                variant={isPreview ? "default" : "outline"} 
-                size="sm"
-                onClick={() => setIsPreview(!isPreview)}
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                {isPreview ? 'Exit Preview' : 'Preview'}
-              </Button>
-              <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => setShowPageSettings(true)}
@@ -1233,7 +1222,7 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
         </div>
 
       {/* Toolbar */}
-      {!isPreview && (
+      {(
         <div className="border-b px-4 py-2 flex items-center justify-between bg-background">
           <div className="flex items-center gap-2">
             <UnifiedElementToolbar 
@@ -1280,7 +1269,7 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Container Tree */}
-        {!isPreview && (
+        {(
           <div className="w-64 border-r bg-muted/30 p-4 overflow-y-auto">
             <div 
               className={cn(
@@ -1373,7 +1362,7 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
                       selectedContainerId={selectedContainerId}
                       activeId={activeId as string}
                       overId={overId as string}
-                      isPreview={isPreview}
+                      isPreview={false}
                       selectedComponentId={selectedComponentId}
                       onSelectComponent={(componentId) => {
                         setSelectedComponentId(componentId)
@@ -1398,7 +1387,7 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
         </div>
 
         {/* Right Panel - Properties */}
-        {!isPreview && selectedContainer && !selectedComponent && (
+        {selectedContainer && !selectedComponent && (
           <ContainerPropertiesPanel
             container={selectedContainer}
             pageId={pageId}
@@ -1406,7 +1395,7 @@ export function VisualPageEditor({ pageId, containers, onRefresh, onSave: _onSav
             onUpdate={updateContainerLocally}
           />
         )}
-        {!isPreview && selectedComponent && (
+        {selectedComponent && (
           <ComponentPropertiesPanel
             component={selectedComponent}
             projectId={currentProject?.id || ''}
@@ -1519,6 +1508,26 @@ function ContainerTree({
             </span>
           </div>
           
+          {/* Show components within this container */}
+          {container.components && container.components.length > 0 && (
+            <div className="space-y-1">
+              {container.components.map((component) => (
+                <div
+                  key={component.id}
+                  className={cn(
+                    "flex items-center gap-2 px-2 py-1 rounded cursor-pointer text-sm",
+                    "hover:bg-accent transition-colors text-muted-foreground"
+                  )}
+                  style={{ paddingLeft: `${(level + 1) * 12 + 8}px` }}
+                >
+                  <span className="text-xs">•</span>
+                  <span className="flex-1">{component.component_type}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Show nested containers */}
           {container.containers && container.containers.length > 0 && (
             <ContainerTree
               containers={container.containers}

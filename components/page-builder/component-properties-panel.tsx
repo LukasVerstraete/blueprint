@@ -10,7 +10,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { InfoIcon, X } from 'lucide-react'
 import { useEntitiesWithProperties } from '@/hooks/use-entities'
 import { useQueries } from '@/hooks/use-queries'
-import { useState, useEffect } from 'react'
 import { getConfigValue } from './components/types'
 import { cn } from '@/lib/utils'
 

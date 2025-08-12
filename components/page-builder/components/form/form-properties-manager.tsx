@@ -245,7 +245,6 @@ export function FormPropertiesManager({
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {orderedProperties.map(property => {
               const formProperty = formProperties.find(fp => fp.property_id === property.id)
-              const localProp = localProperties.get(property.id)
               
               return (
                 <SortablePropertyItem

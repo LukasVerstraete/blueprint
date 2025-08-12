@@ -4,12 +4,11 @@ import { useState, useEffect } from 'react'
 import { BaseComponentProps, getConfigValue } from '../types'
 import { useEntity } from '@/hooks/use-entities'
 import { useQueryExecution } from '@/hooks/use-query-execution'
-import { useCreateEntityInstance, useUpdateEntityInstance, useEntityInstances } from '@/hooks/use-entity-instances'
+import { useCreateEntityInstance, useUpdateEntityInstance } from '@/hooks/use-entity-instances'
 import { PropertyInput } from '@/components/entity-instances/property-input'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { EntityInstanceWithProperties } from '@/types/entity-instance'
-import { Property } from '@/types/entity'
 import { validateValue, castValue } from '@/lib/entity-instance-utils'
 import { cn } from '@/lib/utils'
 
@@ -17,7 +16,6 @@ type FormType = 'create' | 'update'
 
 export function FormRenderer({ 
   component, 
-  pageParameters = {}, 
   projectId,
   isPreview,
   localConfigUpdates
@@ -131,6 +129,11 @@ export function FormRenderer({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Prevent form submission in page builder (isPreview is always false in builder)
+    if (!isPreview) {
+      return
+    }
+    
     if (!entity) return
     
     // Validate
@@ -220,8 +223,13 @@ export function FormRenderer({
       
       <div className="flex justify-end">
         <Button
-          type="submit"
-          disabled={isSubmitting || (isPreview && !window.confirm('Submit form in preview mode?'))}
+          type="button"
+          disabled={!isPreview}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            // In page builder, this button doesn't do anything
+          }}
         >
           {isSubmitting ? 'Submitting...' : submitButtonText}
         </Button>
